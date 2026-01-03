@@ -35,4 +35,18 @@ typedef struct
     MMU *mmu;
 } CPU;
 
+CPU *init_cpu(void);
+
+void clean_up_cpu(CPU *cpu);
+
+uint16_t get_af(CPU *cpu);
+uint16_t get_bc(CPU *cpu);
+uint16_t get_de(CPU *cpu);
+uint16_t get_hl(CPU *cpu);
+
+void set_af(CPU *cpu, uint16_t val);
+void set_bc(CPU *cpu, uint16_t val);
+void set_de(CPU *cpu, uint16_t val);
+void set_hl(CPU *cpu, uint16_t val);
+
 #endif
