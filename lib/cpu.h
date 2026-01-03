@@ -29,7 +29,7 @@ typedef enum
 typedef struct
 {
     uint16_t sp;
-    uint16_t pc;
+    uint16_t program_counter;
     uint8_t flags;
     uint8_t a, b, c, d, e, h, l;
     MMU *mmu;
@@ -38,6 +38,10 @@ typedef struct
 CPU *init_cpu(void);
 
 void clean_up_cpu(CPU *cpu);
+
+void run_cpu(CPU *cpu);
+
+uint8_t get_opcode(MMU *mmu, uint16_t addr);
 
 uint16_t get_af(CPU *cpu);
 uint16_t get_bc(CPU *cpu);

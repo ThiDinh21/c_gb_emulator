@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "errors.h"
 
 CPU *init_cpu(void)
 {
@@ -6,6 +7,9 @@ CPU *init_cpu(void)
     MMU *mmu = (MMU *)calloc(1, sizeof(MMU));
     CPU *cpu = (CPU *)calloc(1, sizeof(CPU));
 
+    // after boot ROM finishes
+    // https://gbdev.io/pandocs/Power_Up_Sequence.html
+    cpu->program_counter = 0x0100;
     cpu->mmu = mmu;
     return cpu;
 }
@@ -14,6 +18,19 @@ void clean_up_cpu(CPU *cpu)
 {
     free(cpu->mmu);
     free(cpu);
+}
+
+void run_cpu(CPU *cpu)
+{
+    while (1)
+    {
+        // Fetch opcode
+        uint8_t opcode = get_opcode(cpu->mmu, cpu->program_counter);
+        cpu->program_counter++;
+
+        // Execute opcode
+        panic_unimplemented();
+    }
 }
 
 uint16_t get_af(CPU *cpu)
