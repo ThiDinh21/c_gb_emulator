@@ -53,4 +53,6 @@ void set_bc(CPU *cpu, uint16_t val);
 void set_de(CPU *cpu, uint16_t val);
 void set_hl(CPU *cpu, uint16_t val);
 
+void set_flag(CPU *cpu, FlagRegister flag, uint8_t val);
+
 #endif

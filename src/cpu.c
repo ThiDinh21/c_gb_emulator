@@ -25,10 +25,11 @@ void run_cpu(CPU *cpu)
     while (1)
     {
         // Fetch opcode
-        uint8_t opcode = get_opcode(cpu->mmu, cpu->program_counter);
+        // uint8_t opcode = get_opcode(cpu->mmu, cpu->program_counter);
         cpu->program_counter++;
 
         // Execute opcode
+
         panic_unimplemented();
     }
 }
@@ -75,4 +76,26 @@ void set_hl(CPU *cpu, uint16_t val)
 {
     cpu->h = val >> 8;
     cpu->l = val & 0x00FF;
+}
+
+void set_flag(CPU *cpu, FlagRegister flag, uint8_t val)
+{
+    switch (flag)
+    {
+    case Z_FLAG:
+        val <<= 7;
+        break;
+    case N_FLAG:
+        val <<= 6;
+        break;
+    case H_FLAG:
+        val <<= 5;
+        break;
+    case C_FLAG:
+        val <<= 4;
+        break;
+    default:
+        panic("Unrecognized flag", ERR_INVALID_MEMORY_ACCESS);
+    }
+    cpu->flags = (cpu->flags & ~flag) | val;
 }

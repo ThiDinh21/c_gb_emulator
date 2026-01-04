@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "mmu.h"
 #include "cpu.h"
+#include "alu.h"
 
 int main(void)
 {
@@ -27,6 +28,18 @@ int main(void)
     set_bc(cpu, 0x87B0);
     printf("AF: %x\nA :%x\nF: %x\n", get_af(cpu), cpu->a, cpu->flags);
     printf("BC: %x\nB :%x\nC: %x\n", get_bc(cpu), cpu->b, cpu->c);
+
+    // ALU tests
+    cpu->a = 0xFF;
+    alu_add(cpu, 0x01, false);
+    printf("\nA after alu add: %x\n", cpu->a);
+    printf("Flags: %x\n", cpu->flags);
+
+    // Set flag test
+    set_flag(cpu, Z_FLAG, 1);
+    printf("Flag Z: %d\n", cpu->flags >> 7);
+    set_flag(cpu, Z_FLAG, 0);
+    printf("Flag Z: %d\n", cpu->flags >> 7);
 
     clean_up_cpu(cpu);
     return 0;
