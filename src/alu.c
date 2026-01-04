@@ -60,9 +60,23 @@ void alu_compare(CPU *cpu, uint8_t val)
     set_flag(cpu, C_FLAG, new_carry);
 }
 
-// uint8_t alu_inc(CPU *cpu, uint8_t val);
+void alu_inc(CPU *cpu, uint8_t *reg_ptr)
+{
+    *reg_ptr += 1;
 
-// uint8_t alu_dec(CPU *cpu, uint8_t val);
+    set_flag(cpu, Z_FLAG, *reg_ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, (*reg_ptr & 0x0F) == 0);
+}
+
+void alu_dec(CPU *cpu, uint8_t *reg_ptr)
+{
+    *reg_ptr -= 1;
+
+    set_flag(cpu, Z_FLAG, *reg_ptr == 0);
+    set_flag(cpu, N_FLAG, 1);
+    set_flag(cpu, H_FLAG, (*reg_ptr & 0x0F) == 0x0F);
+}
 
 // void alu_add_u16(CPU *cpu, uint16_t val);
 

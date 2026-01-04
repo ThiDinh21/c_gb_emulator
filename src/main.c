@@ -30,22 +30,28 @@ int main(void)
     printf("BC: %x\nB :%x\nC: %x\n", get_bc(cpu), cpu->b, cpu->c);
 
     // ALU ADD tests
-    cpu->a = 0xFF;
-    alu_add(cpu, 0x01, false);
+    cpu->a = 0x0f;
+    alu_add(cpu, 0x00, true);
     printf("\nA after alu add: %x\n", cpu->a);
     printf("Flags: %x\n", cpu->flags);
 
     // ALU SUB tests
-    cpu->a = 0x00;
-    alu_sub(cpu, 0x00, false);
+    cpu->a = 0x10;
+    alu_sub(cpu, 0x0F, true);
     printf("\nA after alu sub: %x\n", cpu->a);
     printf("Flags: %x\n\n\n", cpu->flags);
 
-    // Set flag test
-    set_flag(cpu, Z_FLAG, 1);
-    printf("Flag Z: %d\n", cpu->flags >> 7);
-    set_flag(cpu, Z_FLAG, 0);
-    printf("Flag Z: %d\n", cpu->flags >> 7);
+    // ALU INC/DEC r8 tests
+    cpu->flags = 0x10;
+    cpu->b = 0x02;
+    alu_dec(cpu, &(cpu->b));
+    printf("B: %x    Flag: %x\n", cpu->b, cpu->flags);
+    cpu->c = 0x01;
+    alu_dec(cpu, &(cpu->c));
+    printf("C: %x    C_Flag: %x\n", cpu->c, cpu->flags);
+    cpu->h = 0x00;
+    alu_dec(cpu, &(cpu->h));
+    printf("H: %x    C_Flag: %x\n", cpu->h, cpu->flags);
 
     clean_up_cpu(cpu);
     return 0;
