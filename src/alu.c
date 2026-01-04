@@ -78,11 +78,48 @@ void alu_dec(CPU *cpu, uint8_t *reg_ptr)
     set_flag(cpu, H_FLAG, (*reg_ptr & 0x0F) == 0x0F);
 }
 
-// void alu_add_u16(CPU *cpu, uint16_t val);
+void alu_add_u16(CPU *cpu, uint16_t val)
+{
+    uint16_t hl_val = get_hl(cpu);
+    bool h_flag = (hl_val & 0x0FFF) + (val & 0x0FFF) > 0x0FFF;
+    bool c_flag = __builtin_add_overflow(hl_val, val, &hl_val);
 
-// uint16_t alu_dec_r16(CPU *cpu, uint16_t val);
+    set_hl(cpu, hl_val);
 
-// uint16_t alu_inc_r16(CPU *cpu, uint16_t val);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, h_flag);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+uint16_t alu_inc_u16(uint16_t ptr_val)
+{
+    uint16_t new_val = 0;
+    __builtin_add_overflow(ptr_val, 1, &new_val);
+    return new_val;
+}
+
+uint16_t alu_dec_u16(uint16_t ptr_val)
+{
+    uint16_t new_val = 0;
+    __builtin_sub_overflow(ptr_val, 1, &new_val);
+    return new_val;
+}
+
+void alu_add_sp(CPU *cpu, uint8_t val)
+{
+    // val is 8-bit signed offset
+    int8_t signed_offset = (int8_t)val;
+
+    bool h_flag = (cpu->sp & 0x000F) + (signed_offset & 0x000F) > 0x0F;
+    bool c_flag = (cpu->sp & 0x00FF) + (signed_offset & 0x00FF) > 0xFF;
+
+    __builtin_add_overflow(cpu->sp, signed_offset, &(cpu->sp));
+
+    set_flag(cpu, Z_FLAG, 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, h_flag);
+    set_flag(cpu, C_FLAG, c_flag);
+}
 
 // void alu_and(CPU *cpu, uint8_t val);
 

@@ -53,6 +53,22 @@ int main(void)
     alu_dec(cpu, &(cpu->h));
     printf("H: %x    C_Flag: %x\n", cpu->h, cpu->flags);
 
+    // ALU ADD 16 test
+    set_hl(cpu, 0x8000);
+    set_bc(cpu, 0x8000);
+    // set_flag(cpu, Z_FLAG, true);
+    alu_add_u16(cpu, get_bc(cpu));
+    printf("\n\nHL: %x\nFlags: %x\n", get_hl(cpu), cpu->flags);
+    set_bc(cpu, 0xFFFF);
+    set_bc(cpu, alu_inc_u16(get_bc(cpu)));
+    printf("BC: %x\n", get_bc(cpu));
+
+    // ALU ADD SP test
+    cpu->sp = 0x0001;
+    // ADD sp, -1
+    alu_add_sp(cpu, 0xFF);
+    printf("\n\nSP: %x    Flags: %x\n", cpu->sp, cpu->flags);
+
     clean_up_cpu(cpu);
     return 0;
 }

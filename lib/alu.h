@@ -14,11 +14,13 @@ void alu_inc(CPU *cpu, uint8_t *reg_ptr);
 
 void alu_dec(CPU *cpu, uint8_t *reg_ptr);
 
-// void alu_add_u16(CPU *cpu, uint16_t val);
+void alu_add_u16(CPU *cpu, uint16_t val);
 
-// uint16_t alu_dec_r16(CPU *cpu, uint16_t val);
+uint16_t alu_inc_u16(uint16_t ptr_val);
 
-// uint16_t alu_inc_r16(CPU *cpu, uint16_t val);
+uint16_t alu_dec_u16(uint16_t ptr_val);
+
+void alu_add_sp(CPU *cpu, uint8_t val);
 
 // void alu_and(CPU *cpu, uint8_t val);
 
