@@ -22,11 +22,15 @@ typedef struct
 
 uint8_t read_mem(MMU *mmu, uint16_t addr);
 
+uint16_t read_mem_u16(MMU *mmu, uint16_t addr);
+
 uint8_t read_rom(MMU *mmu, uint16_t addr);
 
 uint8_t read_ram(MMU *mmu, uint16_t addr);
 
 void write_mem(MMU *mmu, uint16_t addr, uint8_t val);
+
+void write_mem_u16(MMU *mmu, uint16_t addr, uint16_t val);
 
 void write_rom(MMU *mmu, uint16_t addr, uint8_t val);
 

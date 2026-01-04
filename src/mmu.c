@@ -59,6 +59,14 @@ uint8_t read_rom(MMU *mmu, uint16_t addr)
     }
 }
 
+uint16_t read_mem_u16(MMU *mmu, uint16_t addr)
+{
+    uint8_t lower_byte = read_mem(mmu, addr);
+    __builtin_add_overflow(addr, 1, &addr);
+    uint8_t upper_byte = read_mem(mmu, addr);
+    return upper_byte << 8 | lower_byte;
+}
+
 uint8_t read_ram(MMU *mmu, uint16_t addr)
 {
     // !TODO: temporary, will need to be expanded with MBCs later
@@ -109,6 +117,16 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
     default:
         panic("Attempt to access unused memory region", ERR_INVALID_MEMORY_ACCESS);
     }
+}
+
+void write_mem_u16(MMU *mmu, uint16_t addr, uint16_t val)
+{
+    uint8_t lower_byte = val & 0x00FF;
+    uint8_t upper_byte = val >> 8;
+
+    write_mem(mmu, addr, lower_byte);
+    __builtin_add_overflow(addr, 1, &addr);
+    write_mem(mmu, addr, upper_byte);
 }
 
 void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
