@@ -99,3 +99,17 @@ void set_flag(CPU *cpu, FlagRegister flag, uint8_t val)
     }
     cpu->flags = (cpu->flags & ~flag) | val;
 }
+
+uint8_t cpu_fetch_u8(CPU *cpu)
+{
+    uint8_t val = read_mem(cpu->mmu, cpu->program_counter);
+    cpu->program_counter++;
+    return val;
+}
+
+uint16_t cpu_fetch_u16(CPU *cpu)
+{
+    uint16_t val = read_mem_u16(cpu->mmu, cpu->program_counter);
+    cpu->program_counter += 2;
+    return val;
+}

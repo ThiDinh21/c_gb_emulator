@@ -41,7 +41,7 @@ void clean_up_cpu(CPU *cpu);
 
 void run_cpu(CPU *cpu);
 
-uint8_t get_opcode(MMU *mmu, uint16_t addr);
+// uint8_t get_opcode(MMU *mmu, uint16_t addr);
 
 uint16_t get_af(CPU *cpu);
 uint16_t get_bc(CPU *cpu);
@@ -54,5 +54,8 @@ void set_de(CPU *cpu, uint16_t val);
 void set_hl(CPU *cpu, uint16_t val);
 
 void set_flag(CPU *cpu, FlagRegister flag, uint8_t val);
+
+uint8_t cpu_fetch_u8(CPU *cpu);
+uint16_t cpu_fetch_u16(CPU *cpu);
 
 #endif
