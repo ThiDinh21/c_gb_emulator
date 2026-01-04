@@ -22,12 +22,12 @@ uint16_t alu_dec_u16(uint16_t ptr_val);
 
 void alu_add_sp(CPU *cpu, uint8_t val);
 
-// void alu_and(CPU *cpu, uint8_t val);
+void alu_and(CPU *cpu, uint8_t val);
 
-// void alu_not(CPU *cpu);
+void alu_not(CPU *cpu);
 
-// void alu_or(CPU *cpu, uint8_t val);
+void alu_or(CPU *cpu, uint8_t val);
 
-// void alu_xor(CPU *cpu, uint8_t val);
+void alu_xor(CPU *cpu, uint8_t val);
 
 #endif

@@ -121,10 +121,40 @@ void alu_add_sp(CPU *cpu, uint8_t val)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-// void alu_and(CPU *cpu, uint8_t val);
+void alu_and(CPU *cpu, uint8_t val)
+{
+    cpu->a &= val;
 
-// void alu_not(CPU *cpu);
+    set_flag(cpu, Z_FLAG, cpu->a == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 1);
+    set_flag(cpu, C_FLAG, 0);
+}
 
-// void alu_or(CPU *cpu, uint8_t val);
+void alu_not(CPU *cpu)
+{
+    cpu->a = ~(cpu->a);
 
-// void alu_xor(CPU *cpu, uint8_t val);
+    set_flag(cpu, N_FLAG, 1);
+    set_flag(cpu, H_FLAG, 1);
+}
+
+void alu_or(CPU *cpu, uint8_t val)
+{
+    cpu->a |= val;
+
+    set_flag(cpu, Z_FLAG, cpu->a == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, 0);
+}
+
+void alu_xor(CPU *cpu, uint8_t val)
+{
+    cpu->a ^= val;
+
+    set_flag(cpu, Z_FLAG, cpu->a == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, 0);
+}
