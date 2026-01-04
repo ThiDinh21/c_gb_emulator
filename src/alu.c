@@ -91,17 +91,17 @@ void alu_add_u16(CPU *cpu, uint16_t val)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-uint16_t alu_inc_u16(uint16_t ptr_val)
+uint16_t alu_inc_u16(uint16_t reg_val)
 {
     uint16_t new_val = 0;
-    __builtin_add_overflow(ptr_val, 1, &new_val);
+    __builtin_add_overflow(reg_val, 1, &new_val);
     return new_val;
 }
 
-uint16_t alu_dec_u16(uint16_t ptr_val)
+uint16_t alu_dec_u16(uint16_t reg_val)
 {
     uint16_t new_val = 0;
-    __builtin_sub_overflow(ptr_val, 1, &new_val);
+    __builtin_sub_overflow(reg_val, 1, &new_val);
     return new_val;
 }
 
