@@ -29,11 +29,17 @@ int main(void)
     printf("AF: %x\nA :%x\nF: %x\n", get_af(cpu), cpu->a, cpu->flags);
     printf("BC: %x\nB :%x\nC: %x\n", get_bc(cpu), cpu->b, cpu->c);
 
-    // ALU tests
+    // ALU ADD tests
     cpu->a = 0xFF;
     alu_add(cpu, 0x01, false);
     printf("\nA after alu add: %x\n", cpu->a);
     printf("Flags: %x\n", cpu->flags);
+
+    // ALU SUB tests
+    cpu->a = 0x00;
+    alu_sub(cpu, 0x00, false);
+    printf("\nA after alu sub: %x\n", cpu->a);
+    printf("Flags: %x\n\n\n", cpu->flags);
 
     // Set flag test
     set_flag(cpu, Z_FLAG, 1);

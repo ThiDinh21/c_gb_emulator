@@ -6,9 +6,9 @@
 
 void alu_add(CPU *cpu, uint8_t val, bool carry);
 
-// void alu_sub(CPU *cpu, uint8_t val, bool carry);
+void alu_sub(CPU *cpu, uint8_t val, bool carry);
 
-// void alu_compare(CPU *cpu, uint8_t val);
+void alu_compare(CPU *cpu, uint8_t val);
 
 // uint8_t alu_inc(CPU *cpu, uint8_t val);
 
