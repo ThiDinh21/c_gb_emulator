@@ -179,6 +179,47 @@ void test_alu_inc_dec()
     TEST_ASSERT_EQUAL_HEX8(0xC0, cpu->flags); // Z (0x80) | N (0x40)
 }
 
+void test_alu_add_u16()
+{
+    // ADD HL, rr: Half Carry (Bit 11 overflow)
+    // 0x0FFF + 1 = 0x1000
+    set_hl(cpu, 0x0FFF);
+    cpu->flags = 0x80; // Z set beforehand (must be preserved)
+    alu_add_u16(cpu, 0x0001);
+
+    TEST_ASSERT_EQUAL_HEX16(0x1000, get_hl(cpu));
+    // Z (Preserved) | H (Bit 11 overflow) | N=0 | C=0
+    TEST_ASSERT_EQUAL_HEX8(0xA0, cpu->flags);
+
+    // ADD HL, rr: Full Carry (Bit 15 overflow)
+    // 0xFFFF + 1 = 0x0000
+    set_hl(cpu, 0xFFFF);
+    cpu->flags = 0x00;
+    alu_add_u16(cpu, 0x0001);
+
+    TEST_ASSERT_EQUAL_HEX16(0x0000, get_hl(cpu));
+    // Z (0 preserved) | H (Bit 11 ovf) | C (Bit 15 ovf)
+    TEST_ASSERT_EQUAL_HEX8(0x30, cpu->flags);
+}
+
+void test_alu_inc_dec_u16()
+{
+    // INC 16: Overflow
+    uint16_t res;
+    cpu->flags = 0xF0; // All flags set
+
+    res = alu_inc_u16(0xFFFF);
+    TEST_ASSERT_EQUAL_HEX16(0x0000, res);
+    TEST_ASSERT_EQUAL_HEX8(0xF0, cpu->flags); // Must NOT change
+
+    // DEC 16: Underflow
+    cpu->flags = 0x00; // No flags set
+
+    res = alu_dec_u16(0x0000);
+    TEST_ASSERT_EQUAL_HEX16(0xFFFF, res);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->flags); // Must NOT change
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -187,6 +228,8 @@ int main(void)
     RUN_TEST(test_alu_sub);
     RUN_TEST(test_alu_compare);
     RUN_TEST(test_alu_inc_dec);
+    RUN_TEST(test_alu_add_u16);
+    RUN_TEST(test_alu_inc_dec_u16);
 
     return UNITY_END();
 }
