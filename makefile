@@ -6,35 +6,43 @@ LIBFLAGS ?= -I./lib
 STD ?= -std=c2x
 DBGFLAGS := $(WARNINGS) -g -O0
 COBJFLAGS := -c $(LIBFLAGS) $(STD)
+TEST_COBJFLAGS := $(LIBFLAGS) $(STD)
 
 # path macros
-BIN_PATH := ./build
+BUILD_PATH := ./build
 SRC_PATH := ./src
 LIB_PATH := ./lib
 OBJ_PATH := ./build/obj
 DBG_PATH := ./build/dbg
 TEST_PATH := ./tests
+SCRIPTS_PATH := ./scripts
 
 # compile macros
 TARGET_NAME := gb_emulator
-TARGET := $(BIN_PATH)/$(TARGET_NAME)
+TARGET := $(BUILD_PATH)/$(TARGET_NAME)
 TARGET_DBG := $(DBG_PATH)/$(TARGET_NAME)
-TARGET_TEST := $(BIN_PATH)/$(TARGET_NAME)_test
 
 # src files & obj files
 SRC := $(wildcard $(SRC_PATH)/*.c)
 SRC_EXCEPT_MAIN := $(filter-out $(SRC_PATH)/main.c, $(SRC))
 SRC_TEST := $(wildcard $(TEST_PATH)/*.c)
+SRC_TEST_EXCEPT_UNITY := $(filter-out $(TEST_PATH)/unity.c, $(SRC_TEST))
+
+# Unity test runner
+# convert tests/test_*.c to build/test_*
+TARGET_TESTS := $(patsubst $(TEST_PATH)/%.c, $(BUILD_PATH)/%, $(SRC_TEST_EXCEPT_UNITY))
+GEN_RUNNER := $(SCRIPTS_PATH)/unity/generate_test_runner.rb
 
 # Generate object lists
 OBJ := $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
 OBJ_DEBUG := $(addprefix $(DBG_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
-OBJ_TEST := $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC_TEST))))) $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC_EXCEPT_MAIN)))))
 
 # clean files list
 CLEAN_LIST := $(OBJ) \
                   $(OBJ_DEBUG) \
-				  $(OBJ_TEST)
+				  $(TARGET_TESTS) \
+				  $(wildcard $(BUILD_PATH)/*_Runner.c) \
+				  $(OBJ_PATH)/*.o
 DISTCLEAN_LIST := $(TARGET) \
               $(TARGET_DBG) \
               $(CLEAN_LIST)
@@ -67,11 +75,6 @@ $(TARGET_DBG): $(OBJ_DEBUG)
 	@mkdir -p $(@D)
 	$(CC) $(DBGFLAGS) $(OBJ_DEBUG) -o $@
 
-# Test Binary Rule
-$(TARGET_TEST): $(OBJ_TEST)
-	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(OBJ_TEST) -o $@
-
 # phony rules
 .PHONY: build
 build: $(TARGET)
@@ -95,7 +98,27 @@ distclean:
 	@rm -f $(DISTCLEAN_LIST)
 
 .PHONY: test
-test: $(TARGET_TEST)
-	@echo RUN TESTS $(TARGET_TEST)
-	@$(TARGET_TEST)
+test: $(TARGET_TESTS)
+	@echo "--- ALL TESTS PASSED ---"
 
+# To build 'build/test_alu', we need:
+#   1. The original test file (test_alu.c)
+#   2. The generated runner (test_alu_Runner.c)
+#   3. Unity
+#   4. The Emulator Core
+$(BUILD_PATH)/%: $(TEST_PATH)/%.c $(SRC_EXCEPT_MAIN)
+	@mkdir -p $(BUILD_PATH)
+
+	# 1. Generate the Runner C file using Ruby
+	ruby $(GEN_RUNNER) $< $(BUILD_PATH)/$*_Runner.c
+	
+	# 2. Compile everything together
+	gcc -I$(SRC_PATH) -I$(TEST_PATH) \
+	$(TEST_COBJFLAGS) $(CFLAGS) \
+		-o $@ $< \
+		$(BUILD_PATH)/$*_Runner.c \
+		$(TEST_PATH)/unity.c \
+		$(SRC_EXCEPT_MAIN)
+		
+	# 3. Run it immediately
+	./$@
