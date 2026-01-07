@@ -109,10 +109,84 @@ void test_alu_sub()
     TEST_ASSERT_EQUAL_HEX8(0x70, cpu->flags); // N | H | C
 }
 
+void test_alu_compare()
+{
+    // CP: Equal (Zero Flag)
+    // 0x05 - 0x05 = 0
+    cpu->a = 0x05;
+    cpu->b = 0x05;
+    cpu->flags = 0x00;
+    alu_compare(cpu, cpu->b);
+    TEST_ASSERT_EQUAL_HEX8(0x05, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0xC0, cpu->flags); // Z | N (Result 0)
+
+    // CP: Less Than (Carry/Underflow)
+    // 0x01 - 0x02 = Underflow
+    cpu->a = 0x01;
+    cpu->b = 0x02;
+    cpu->flags = 0x00;
+    alu_compare(cpu, cpu->b);
+    TEST_ASSERT_EQUAL_HEX8(0x01, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0x70, cpu->flags); // N | H | C
+
+    // CP: Half Borrow (H Flag only)
+    // 0x10 - 0x01 = 0x0F (Nibble borrow: 0 - 1)
+    cpu->a = 0x10;
+    cpu->b = 0x01;
+    cpu->flags = 0x00;
+    alu_compare(cpu, cpu->b);
+    TEST_ASSERT_EQUAL_HEX8(0x10, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0x60, cpu->flags); // N | H
+}
+
+void test_alu_inc_dec()
+{
+    uint8_t val;
+
+    // --- INC TESTS ---
+
+    // INC: Half Carry
+    // 0x0F + 1 = 0x10 (Bit 3 overflows)
+    val = 0x0F;
+    cpu->flags = 0x10; // SET C, must not be cleared
+    alu_inc(cpu, &val);
+    TEST_ASSERT_EQUAL_HEX8(0x10, val);
+    TEST_ASSERT_EQUAL_HEX8(0x30, cpu->flags); // H (0x20) | C (0x10 preserved)
+
+    // INC: Overflow to Zero
+    // 0xFF + 1 = 0x00
+    val = 0xFF;
+    cpu->flags = 0x00;
+    alu_inc(cpu, &val);
+    TEST_ASSERT_EQUAL_HEX8(0x00, val);
+    TEST_ASSERT_EQUAL_HEX8(0xA0, cpu->flags); // Z (0x80) | H (0x20) | N=0
+
+    // --- DEC TESTS ---
+
+    // DEC: Half Borrow
+    // 0x10 - 1 = 0x0F (borrow nibble)
+    val = 0x10;
+    cpu->flags = 0x10; // SET C
+    alu_dec(cpu, &val);
+    TEST_ASSERT_EQUAL_HEX8(0x0F, val);
+    TEST_ASSERT_EQUAL_HEX8(0x70, cpu->flags); // N (0x40) | H (0x20) | C (0x10 preserved)
+
+    // DEC: Zero Result
+    val = 0x01;
+    cpu->flags = 0x00;
+    alu_dec(cpu, &val);
+    TEST_ASSERT_EQUAL_HEX8(0x00, val);
+    TEST_ASSERT_EQUAL_HEX8(0xC0, cpu->flags); // Z (0x80) | N (0x40)
+}
+
 int main(void)
 {
     UNITY_BEGIN();
+
     RUN_TEST(test_alu_add);
     RUN_TEST(test_alu_sub);
+    RUN_TEST(test_alu_compare);
+    RUN_TEST(test_alu_inc_dec);
+
     return UNITY_END();
 }
