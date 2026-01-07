@@ -220,6 +220,60 @@ void test_alu_inc_dec_u16()
     TEST_ASSERT_EQUAL_HEX8(0x00, cpu->flags); // Must NOT change
 }
 
+void test_alu_add_sp()
+{
+    // Positive Offset
+    cpu->sp = 0x1000;
+    cpu->flags = 0xF0; // Z/N must be cleared
+    alu_add_sp(cpu, 0x05);
+    TEST_ASSERT_EQUAL_HEX16(0x1005, cpu->sp);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->flags);
+
+    // Negative Offset (-1)
+    // Math: 1 - 1 = 0. Flags: 1 + 0xFF overflows H & C
+    cpu->sp = 0x0001;
+    alu_add_sp(cpu, (uint8_t)-1);
+    TEST_ASSERT_EQUAL_HEX16(0x0000, cpu->sp);
+    TEST_ASSERT_EQUAL_HEX8(0x30, cpu->flags); // H | C
+
+    // Half Carry Only
+    cpu->sp = 0x000F;
+    alu_add_sp(cpu, 0x01);
+    TEST_ASSERT_EQUAL_HEX16(0x0010, cpu->sp);
+    TEST_ASSERT_EQUAL_HEX8(0x20, cpu->flags); // H
+}
+
+void test_alu_bitwise()
+{
+    // AND: H Flag always 1
+    cpu->a = 0x55;
+    cpu->flags = 0x10; // C set (should clear)
+    alu_and(cpu, 0xAA);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->a);     // 0x55 & 0xAA = 0
+    TEST_ASSERT_EQUAL_HEX8(0xA0, cpu->flags); // Z=1 | H=1
+
+    // OR: Clears Flags
+    cpu->a = 0x01;
+    cpu->flags = 0xF0; // All set (should clear N/H/C)
+    alu_or(cpu, 0x02);
+    TEST_ASSERT_EQUAL_HEX8(0x03, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->flags);
+
+    // XOR: Zero Result
+    cpu->a = 0xFF;
+    cpu->flags = 0xF0;
+    alu_xor(cpu, 0xFF);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0x80, cpu->flags); // Z only
+
+    // NOT (CPL): Preserves Z/C, Sets N/H
+    cpu->a = 0xF0;
+    cpu->flags = 0x90; // Z=1, C=1 (Must Preserve)
+    alu_not(cpu);
+    TEST_ASSERT_EQUAL_HEX8(0x0F, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0xF0, cpu->flags); // Z | N | H | C
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -230,6 +284,8 @@ int main(void)
     RUN_TEST(test_alu_inc_dec);
     RUN_TEST(test_alu_add_u16);
     RUN_TEST(test_alu_inc_dec_u16);
+    RUN_TEST(test_alu_add_sp);
+    RUN_TEST(test_alu_bitwise);
 
     return UNITY_END();
 }
