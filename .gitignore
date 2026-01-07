@@ -64,4 +64,3 @@ bin/
 
 # test
 tests/runner.c
-scripts/
