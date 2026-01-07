@@ -273,19 +273,3 @@ void test_alu_bitwise()
     TEST_ASSERT_EQUAL_HEX8(0x0F, cpu->a);
     TEST_ASSERT_EQUAL_HEX8(0xF0, cpu->flags); // Z | N | H | C
 }
-
-int main(void)
-{
-    UNITY_BEGIN();
-
-    RUN_TEST(test_alu_add);
-    RUN_TEST(test_alu_sub);
-    RUN_TEST(test_alu_compare);
-    RUN_TEST(test_alu_inc_dec);
-    RUN_TEST(test_alu_add_u16);
-    RUN_TEST(test_alu_inc_dec_u16);
-    RUN_TEST(test_alu_add_sp);
-    RUN_TEST(test_alu_bitwise);
-
-    return UNITY_END();
-}
