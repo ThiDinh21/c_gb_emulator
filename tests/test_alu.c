@@ -6,8 +6,13 @@ CPU *cpu;
 void setUp()
 {
     cpu = init_cpu();
+    cpu->a = 0x00;
+    cpu->flags = 0x00;
 }
-void tearDown() {}
+void tearDown()
+{
+    clean_up_cpu(cpu);
+}
 
 void test_alu_add()
 {
@@ -24,6 +29,31 @@ void test_alu_add()
     cpu->b = 0x01;
     cpu->flags = 0x00;
     alu_add(cpu, cpu->b, false);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0xB0, cpu->flags);
+
+    // ADD N-Flag Reset Test
+    cpu->a = 0x01;
+    cpu->b = 0x01;
+    cpu->flags = 0x40; // N flag starts SET (Subtraction mode)
+    alu_add(cpu, cpu->b, false);
+
+    TEST_ASSERT_EQUAL_HEX8(0x02, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->flags);
+
+    // ADC
+    cpu->a = 0x01;
+    cpu->b = 0x01;
+    cpu->flags = 0x10;
+    alu_add(cpu, cpu->b, true);
+    TEST_ASSERT_EQUAL_HEX8(0x03, cpu->a);
+    TEST_ASSERT_EQUAL_HEX8(0x00, cpu->flags);
+
+    // ADC 2
+    cpu->a = 0xFF;
+    cpu->b = 0x00;
+    cpu->flags = 0x10;
+    alu_add(cpu, cpu->b, true);
     TEST_ASSERT_EQUAL_HEX8(0x00, cpu->a);
     TEST_ASSERT_EQUAL_HEX8(0xB0, cpu->flags);
 }
