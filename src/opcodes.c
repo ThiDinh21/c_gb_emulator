@@ -108,7 +108,7 @@ uint8_t op_0a(CPU *cpu)
 }
 
 // DEC BC
-uint8_t op_ob(CPU *cpu)
+uint8_t op_0b(CPU *cpu)
 {
     uint16_t new_bc = alu_dec_u16(get_bc(cpu));
     set_bc(cpu, new_bc);
