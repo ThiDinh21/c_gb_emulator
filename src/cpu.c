@@ -22,91 +22,88 @@ void clean_up_cpu(CPU *cpu)
     free(cpu);
 }
 
-void run_cpu(CPU *cpu)
+uint8_t cpu_step(CPU *cpu)
 {
-    while (1)
-    {
-        // Fetch opcode
-        uint8_t opcode = cpu_fetch_u8(cpu);
-        uint8_t cycles = 0;
 
-        // Execute opcode
-        switch (opcode)
-        {
-        case 0x00:
-            // NOP
-            cycles = op_00();
-            break;
-        case 0x01:
-            // LD BC, u16
-            cycles = op_01(cpu);
-            break;
-        case 0x02:
-            // LD (BC), A
-            cycles = op_02(cpu);
-            break;
-        case 0x03:
-            // INC BC
-            cycles = op_03(cpu);
-            break;
-        case 0x04:
-            // INC B
-            cycles = op_04(cpu);
-            break;
-        case 0x05:
-            // DEC B
-            cycles = op_05(cpu);
-            break;
-        case 0x06:
-            // LD B, u8
-            cycles = op_06(cpu);
-            break;
-        case 0x07:
-            // RLCA
-            cycles = op_07(cpu);
-            break;
-        case 0x08:
-            // LD (u16), SP
-            cycles = op_08(cpu);
-            break;
-        case 0x09:
-            // ADD HL, BC
-            cycles = op_09(cpu);
-            break;
-        case 0x0A:
-            // LD A, (BC)
-            cycles = op_0a(cpu);
-            break;
-        case 0x0B:
-            // DEC BC
-            cycles = op_0b(cpu);
-            break;
-        case 0x0C:
-            // INC C
-            cycles = op_0c(cpu);
-            break;
-        case 0x0D:
-            // DEC C
-            cycles = op_0d(cpu);
-            break;
-        case 0x0E:
-            // LD C, u8
-            cycles = op_0e(cpu);
-            break;
-        case 0x0F:
-            // RRCA
-            cycles = op_0f(cpu);
-            break;
-        // case 0x10 ... 0xFF:
-        //     panic_unimplemented();
-        default:
-            char err_msg[30];
-            snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
-            panic(err_msg, ERR_UNKNOWN_INSTRUCTION);
-        }
-        printf("%d", cycles);
-        return;
+    // Fetch opcode
+    uint8_t opcode = cpu_fetch_u8(cpu);
+    uint8_t cycles = 0;
+
+    // Execute opcode
+    switch (opcode)
+    {
+    case 0x00:
+        // NOP
+        cycles = op_00();
+        break;
+    case 0x01:
+        // LD BC, u16
+        cycles = op_01(cpu);
+        break;
+    case 0x02:
+        // LD (BC), A
+        cycles = op_02(cpu);
+        break;
+    case 0x03:
+        // INC BC
+        cycles = op_03(cpu);
+        break;
+    case 0x04:
+        // INC B
+        cycles = op_04(cpu);
+        break;
+    case 0x05:
+        // DEC B
+        cycles = op_05(cpu);
+        break;
+    case 0x06:
+        // LD B, u8
+        cycles = op_06(cpu);
+        break;
+    case 0x07:
+        // RLCA
+        cycles = op_07(cpu);
+        break;
+    case 0x08:
+        // LD (u16), SP
+        cycles = op_08(cpu);
+        break;
+    case 0x09:
+        // ADD HL, BC
+        cycles = op_09(cpu);
+        break;
+    case 0x0A:
+        // LD A, (BC)
+        cycles = op_0a(cpu);
+        break;
+    case 0x0B:
+        // DEC BC
+        cycles = op_0b(cpu);
+        break;
+    case 0x0C:
+        // INC C
+        cycles = op_0c(cpu);
+        break;
+    case 0x0D:
+        // DEC C
+        cycles = op_0d(cpu);
+        break;
+    case 0x0E:
+        // LD C, u8
+        cycles = op_0e(cpu);
+        break;
+    case 0x0F:
+        // RRCA
+        cycles = op_0f(cpu);
+        break;
+    // case 0x10 ... 0xFF:
+    //     panic_unimplemented();
+    default:
+        char err_msg[30];
+        snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
+        panic(err_msg, ERR_UNKNOWN_INSTRUCTION);
     }
+    return cycles;
 }
 
 uint16_t get_af(CPU *cpu)
