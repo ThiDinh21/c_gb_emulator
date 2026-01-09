@@ -109,7 +109,7 @@ uint8_t cpu_step(CPU *cpu)
 void cpu_stop(CPU *cpu)
 {
     // !TODO
-    panic_unimplemented();
+    panic_unimplemented("cpu_stop");
 }
 
 uint16_t get_af(CPU *cpu)

@@ -11,14 +11,14 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
     case 0x8000 ... 0x9FFF:
         // VRAM
         // !TODO
-        panic_unimplemented();
+        panic_unimplemented("read_mem vram");
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
         return read_ram(mmu, addr);
     case 0xC000 ... 0xDFFF:
         // WRAM (switchable)
         // !TODO
-        panic_unimplemented();
+        panic_unimplemented("read_mem wram");
     case 0xE000 ... 0xFDFF:
         // Prohibited memory segment
         // !TODO: Echo RAM, some games use this, might need to implement later
@@ -26,16 +26,16 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
         // !TODO
-        panic_unimplemented();
+        panic_unimplemented("read_mem oam");
     case 0xFEA0 ... 0xFEFF:
         // Prohibited memory segment
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
     case 0xFF00 ... 0xFF7F:
         // Input
-        panic_unimplemented();
+        panic_unimplemented("read_mem input");
     case 0xFF80 ... 0xFFFE:
         // HRAM
-        panic_unimplemented();
+        panic_unimplemented("read_mem hram");
     case 0xFFFF:
         // Interrupt enable register
         return mmu->interrupt_enable;
@@ -84,7 +84,7 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
     case 0x8000 ... 0x9FFF:
         // VRAM
         // !TODO
-        panic_unimplemented();
+        panic_unimplemented("write_mem vram");
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
         write_ram(mmu, addr, val);
@@ -92,7 +92,7 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
     case 0xC000 ... 0xDFFF:
         // WRAM (switchable)
         // !TODO
-        panic_unimplemented();
+        panic_unimplemented("write_mem wram");
     case 0xE000 ... 0xFDFF:
         // Prohibited memory segment
         // !TODO: Echo RAM, some games use this, might need to implement later
@@ -100,16 +100,16 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
         // !TODO
-        panic_unimplemented();
+        panic_unimplemented("write_mem oam");
     case 0xFEA0 ... 0xFEFF:
         // Prohibited memory segment
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
     case 0xFF00 ... 0xFF7F:
         // Input
-        panic_unimplemented();
+        panic_unimplemented("write_mem_input");
     case 0xFF80 ... 0xFFFE:
         // HRAM
-        panic_unimplemented();
+        panic_unimplemented("write_mem hram");
     case 0xFFFF:
         // Interrupt enable register
         mmu->interrupt_enable = val;

@@ -12,6 +12,6 @@ typedef enum
 
 void __attribute__((noreturn)) panic(char *err_msg, ErrorCode code);
 
-void __attribute__((noreturn)) panic_unimplemented();
+void __attribute__((noreturn)) panic_unimplemented(char *panic_location);
 
 #endif
