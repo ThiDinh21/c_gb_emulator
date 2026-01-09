@@ -40,6 +40,7 @@ CPU *init_cpu(void);
 void clean_up_cpu(CPU *cpu);
 
 uint8_t cpu_step(CPU *cpu);
+void cpu_stop(CPU *cpu);
 
 // uint8_t get_opcode(MMU *mmu, uint16_t addr);
 

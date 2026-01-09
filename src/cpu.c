@@ -106,6 +106,12 @@ uint8_t cpu_step(CPU *cpu)
     return cycles;
 }
 
+void cpu_stop(CPU *cpu)
+{
+    // !TODO
+    panic_unimplemented();
+}
+
 uint16_t get_af(CPU *cpu)
 {
     return (cpu->a << 8) | cpu->flags;

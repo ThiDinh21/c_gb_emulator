@@ -149,3 +149,10 @@ uint8_t op_0f(CPU *cpu)
     set_flag(cpu, C_FLAG, c_flag);
     return 4;
 }
+
+// STOP
+uint8_t op_10(CPU *cpu)
+{
+    cpu_stop(cpu);
+    return 4;
+}
