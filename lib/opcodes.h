@@ -24,5 +24,20 @@ uint8_t op_0d(CPU *cpu);
 uint8_t op_0e(CPU *cpu);
 uint8_t op_0f(CPU *cpu);
 uint8_t op_10(CPU *cpu);
+uint8_t op_11(CPU *cpu);
+uint8_t op_12(CPU *cpu);
+uint8_t op_13(CPU *cpu);
+uint8_t op_14(CPU *cpu);
+uint8_t op_15(CPU *cpu);
+uint8_t op_16(CPU *cpu);
+uint8_t op_17(CPU *cpu);
+uint8_t op_18(CPU *cpu);
+uint8_t op_19(CPU *cpu);
+uint8_t op_1a(CPU *cpu);
+uint8_t op_1b(CPU *cpu);
+uint8_t op_1c(CPU *cpu);
+uint8_t op_1d(CPU *cpu);
+uint8_t op_1e(CPU *cpu);
+uint8_t op_1f(CPU *cpu);
 
 #endif
