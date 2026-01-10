@@ -10,8 +10,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         return read_rom(mmu, addr);
     case 0x8000 ... 0x9FFF:
         // VRAM
-        // !TODO
-        panic_unimplemented("read_mem vram");
+        return read_vram(mmu, addr);
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
         return read_sram(mmu, addr);
@@ -31,7 +30,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
     case 0xFF00 ... 0xFF7F:
         // Input
-        panic_unimplemented("read_mem input");
+        return read_io(mmu, addr);
     case 0xFF80 ... 0xFFFE:
         // HRAM
         panic_unimplemented("read_mem hram");
@@ -66,6 +65,12 @@ uint16_t read_mem_u16(MMU *mmu, uint16_t addr)
     return upper_byte << 8 | lower_byte;
 }
 
+uint8_t read_vram(MMU *mmu, uint16_t addr)
+{
+    // !TODO: tmp, not sure if need updating
+    return mmu->vram[addr - 0x8000];
+}
+
 uint8_t read_sram(MMU *mmu, uint16_t addr)
 {
     // !TODO: temporary, will need to be expanded with MBCs later
@@ -75,6 +80,12 @@ uint8_t read_sram(MMU *mmu, uint16_t addr)
 uint8_t read_wram(MMU *mmu, uint16_t addr)
 {
     return mmu->wram[addr - 0xC000];
+}
+
+uint8_t read_io(MMU *mmu, uint16_t addr)
+{
+    // !TODO: tmp, not sure if need updating
+    return mmu->io[addr - 0xFF00];
 }
 
 void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
@@ -87,8 +98,8 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         return;
     case 0x8000 ... 0x9FFF:
         // VRAM
-        // !TODO
-        panic_unimplemented("write_mem vram");
+        write_vram(mmu, addr, val);
+        return;
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
         write_sram(mmu, addr, val);
@@ -111,7 +122,8 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
     case 0xFF00 ... 0xFF7F:
         // Input
-        panic_unimplemented("write_mem_input");
+        write_io(mmu, addr, val);
+        return;
     case 0xFF80 ... 0xFFFE:
         // HRAM
         panic_unimplemented("write_mem hram");
@@ -149,6 +161,12 @@ void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
     }
 }
 
+void write_vram(MMU *mmu, uint16_t addr, uint8_t val)
+{
+    // !TODO: tmp, not sure if need updating
+    mmu->vram[addr - 0x8000] = val;
+}
+
 void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
 {
     // !TODO: temporary, will need to be expanded with MBCs later
@@ -158,4 +176,10 @@ void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
 void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
 {
     mmu->wram[addr - 0xC000] = val;
+}
+
+void write_io(MMU *mmu, uint16_t addr, uint8_t val)
+{
+    // !TODO: tmp, not sure if need updating
+    mmu->io[addr - 0xFF00] = val;
 }
