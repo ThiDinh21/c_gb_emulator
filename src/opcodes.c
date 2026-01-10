@@ -1,24 +1,148 @@
+#include <stdio.h>
 #include "opcodes.h"
 #include "errors.h"
 
 uint8_t decode(CPU *cpu, uint8_t opcode)
 {
-    uint8_t cycle = 0;
+    uint8_t cycles = 0;
 
     switch (opcode)
     {
     case 0x00:
-        cycle = op_00();
+        // NOP
+        cycles = op_00();
         break;
     case 0x01:
-        cycle = op_01(cpu);
+        // LD BC, u16
+        cycles = op_01(cpu);
         break;
-
+    case 0x02:
+        // LD (BC), A
+        cycles = op_02(cpu);
+        break;
+    case 0x03:
+        // INC BC
+        cycles = op_03(cpu);
+        break;
+    case 0x04:
+        // INC B
+        cycles = op_04(cpu);
+        break;
+    case 0x05:
+        // DEC B
+        cycles = op_05(cpu);
+        break;
+    case 0x06:
+        // LD B, u8
+        cycles = op_06(cpu);
+        break;
+    case 0x07:
+        // RLCA
+        cycles = op_07(cpu);
+        break;
+    case 0x08:
+        // LD (u16), SP
+        cycles = op_08(cpu);
+        break;
+    case 0x09:
+        // ADD HL, BC
+        cycles = op_09(cpu);
+        break;
+    case 0x0A:
+        // LD A, (BC)
+        cycles = op_0a(cpu);
+        break;
+    case 0x0B:
+        // DEC BC
+        cycles = op_0b(cpu);
+        break;
+    case 0x0C:
+        // INC C
+        cycles = op_0c(cpu);
+        break;
+    case 0x0D:
+        // DEC C
+        cycles = op_0d(cpu);
+        break;
+    case 0x0E:
+        // LD C, u8
+        cycles = op_0e(cpu);
+        break;
+    case 0x0F:
+        // RRCA
+        cycles = op_0f(cpu);
+        break;
+    case 0x10:
+        // STOP
+        cycles = op_10(cpu);
+        break;
+    case 0x11:
+        // LD DE, u16
+        cycles = op_11(cpu);
+        break;
+    case 0x12:
+        // LD (DE), A
+        cycles = op_12(cpu);
+        break;
+    case 0x13:
+        // INC DE
+        cycles = op_13(cpu);
+        break;
+    case 0x14:
+        // INC D
+        cycles = op_14(cpu);
+        break;
+    case 0x15:
+        // DEC D
+        cycles = op_15(cpu);
+        break;
+    case 0x16:
+        // LD D, u8
+        cycles = op_16(cpu);
+        break;
+    case 0x17:
+        // LD RLA
+        cycles = op_17(cpu);
+        break;
+    case 0x18:
+        // JR i8
+        cycles = op_18(cpu);
+        break;
+    case 0x19:
+        // ADD HL, DE
+        cycles = op_19(cpu);
+        break;
+    case 0x1A:
+        // LD A, (DE)
+        cycles = op_1a(cpu);
+        break;
+    case 0x1B:
+        // DEC DE
+        cycles = op_1b(cpu);
+        break;
+    case 0x1C:
+        // INC E
+        cycles = op_1c(cpu);
+        break;
+    case 0x1D:
+        // DEC E
+        cycles = op_1d(cpu);
+        break;
+    case 0x1E:
+        // LD E, u8
+        cycles = op_1e(cpu);
+        break;
+    case 0x1F:
+        // RRA
+        cycles = op_1f(cpu);
+        break;
     default:
-        panic("Unrecognized opcode", ERR_UNKNOWN_INSTRUCTION);
+        char err_msg[30];
+        snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
+        panic(err_msg, ERR_UNKNOWN_INSTRUCTION);
     }
 
-    return cycle;
+    return cycles;
 }
 
 // NOP
