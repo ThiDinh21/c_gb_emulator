@@ -5,6 +5,7 @@ CFLAGS ?= $(WARNINGS) -g -O2 -fsanitize=address
 LIBFLAGS ?= -I./lib
 STD ?= -std=c2x
 DBGFLAGS := $(WARNINGS) -g -O0
+TESTFLAGS ?= -DUNITY_TEST_RUN
 COBJFLAGS := -c $(LIBFLAGS) $(STD)
 TEST_COBJFLAGS := $(LIBFLAGS) $(STD)
 
@@ -138,7 +139,7 @@ $(TARGET_TEST_GEN): $(BUILD_PATH)/generated/%: $(TEST_GEN_PATH)/%.c $(SRC_EXCEPT
 		$(BUILD_PATH)/generated/$*_Runner.c \
 		$(TEST_PATH)/unity.c \
 		$(SRC_EXCEPT_MAIN) \
-		-I$(SRC_PATH) -I$(TEST_PATH) -I$(TEST_GEN_PATH) $(LIBFLAGS)
+		-I$(SRC_PATH) -I$(TEST_PATH) $(LIBFLAGS) $(TESTFLAGS)
 	
 	# 3. Run
 	./$@
