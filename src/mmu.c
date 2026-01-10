@@ -16,9 +16,8 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         // RAM (switchable)
         return read_sram(mmu, addr);
     case 0xC000 ... 0xDFFF:
-        // WRAM (switchable)
-        // !TODO
-        panic_unimplemented("read_mem wram");
+        // WRAM
+        return read_wram(mmu, addr);
     case 0xE000 ... 0xFDFF:
         // Echo WRAM
         // Ninetendo said this is prohibited memory segment
@@ -73,6 +72,11 @@ uint8_t read_sram(MMU *mmu, uint16_t addr)
     return mmu->sram[addr - 0xA000];
 }
 
+uint8_t read_wram(MMU *mmu, uint16_t addr)
+{
+    return mmu->wram[addr - 0xC000];
+}
+
 void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
 {
     switch (addr)
@@ -90,9 +94,9 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         write_sram(mmu, addr, val);
         return;
     case 0xC000 ... 0xDFFF:
-        // WRAM (switchable)
-        // !TODO
-        panic_unimplemented("write_mem wram");
+        // WRAM
+        write_wram(mmu, addr, val);
+        return;
     case 0xE000 ... 0xFDFF:
         // Echo WRAM
         // Ninetendo said this is prohibited memory segment
@@ -149,4 +153,9 @@ void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
 {
     // !TODO: temporary, will need to be expanded with MBCs later
     mmu->sram[addr - 0xA000] = val;
+}
+
+void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
+{
+    mmu->wram[addr - 0xC000] = val;
 }
