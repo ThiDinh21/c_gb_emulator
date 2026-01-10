@@ -299,7 +299,7 @@ uint8_t op_12(CPU *cpu)
 uint8_t op_13(CPU *cpu)
 {
     uint16_t new_de = alu_inc_u16(get_de(cpu));
-    set_bc(cpu, new_de);
+    set_de(cpu, new_de);
     return 8;
 }
 
