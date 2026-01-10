@@ -14,7 +14,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         panic_unimplemented("read_mem vram");
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
-        return read_ram(mmu, addr);
+        return read_sram(mmu, addr);
     case 0xC000 ... 0xDFFF:
         // WRAM (switchable)
         // !TODO
@@ -67,10 +67,10 @@ uint16_t read_mem_u16(MMU *mmu, uint16_t addr)
     return upper_byte << 8 | lower_byte;
 }
 
-uint8_t read_ram(MMU *mmu, uint16_t addr)
+uint8_t read_sram(MMU *mmu, uint16_t addr)
 {
     // !TODO: temporary, will need to be expanded with MBCs later
-    return mmu->ram[addr - 0xA000];
+    return mmu->sram[addr - 0xA000];
 }
 
 void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
@@ -87,7 +87,7 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         panic_unimplemented("write_mem vram");
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
-        write_ram(mmu, addr, val);
+        write_sram(mmu, addr, val);
         return;
     case 0xC000 ... 0xDFFF:
         // WRAM (switchable)
@@ -145,8 +145,8 @@ void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
     }
 }
 
-void write_ram(MMU *mmu, uint16_t addr, uint8_t val)
+void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
 {
     // !TODO: temporary, will need to be expanded with MBCs later
-    mmu->ram[addr - 0xA000] = val;
+    mmu->sram[addr - 0xA000] = val;
 }

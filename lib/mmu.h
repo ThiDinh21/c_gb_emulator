@@ -11,7 +11,7 @@ typedef struct
     uint8_t rom_n[0x4000]; // !TODO: a switch bank, might need to make bigger
     // size_t rom_index;
     uint8_t vram[0x2000];
-    uint8_t ram[0x2000];
+    uint8_t sram[0x2000];
     uint8_t wram[0x2000];
     // size_t wram_index;
     uint8_t oam[0xA0];
@@ -26,7 +26,7 @@ uint16_t read_mem_u16(MMU *mmu, uint16_t addr);
 
 uint8_t read_rom(MMU *mmu, uint16_t addr);
 
-uint8_t read_ram(MMU *mmu, uint16_t addr);
+uint8_t read_sram(MMU *mmu, uint16_t addr);
 
 void write_mem(MMU *mmu, uint16_t addr, uint8_t val);
 
@@ -34,6 +34,6 @@ void write_mem_u16(MMU *mmu, uint16_t addr, uint16_t val);
 
 void write_rom(MMU *mmu, uint16_t addr, uint8_t val);
 
-void write_ram(MMU *mmu, uint16_t addr, uint8_t val);
+void write_sram(MMU *mmu, uint16_t addr, uint8_t val);
 
 #endif
