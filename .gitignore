@@ -64,3 +64,4 @@ bin/
 
 # test
 tests/test_generated_*
+tests/generated/*
