@@ -23,8 +23,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         return read_mem(mmu, addr - 0x2000);
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
-        // !TODO
-        panic_unimplemented("read_mem oam");
+        return read_oam(mmu, addr);
     case 0xFEA0 ... 0xFEFF:
         // Prohibited memory segment
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
@@ -33,7 +32,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         return read_io(mmu, addr);
     case 0xFF80 ... 0xFFFE:
         // HRAM
-        panic_unimplemented("read_mem hram");
+        return read_hram(mmu, addr);
     case 0xFFFF:
         // Interrupt enable register
         return mmu->interrupt_enable;
@@ -82,10 +81,22 @@ uint8_t read_wram(MMU *mmu, uint16_t addr)
     return mmu->wram[addr - 0xC000];
 }
 
+uint8_t read_oam(MMU *mmu, uint16_t addr)
+{
+    // !TODO: tmp, not sure if need updating
+    return mmu->oam[addr - 0xFE00];
+}
+
 uint8_t read_io(MMU *mmu, uint16_t addr)
 {
     // !TODO: tmp, not sure if need updating
     return mmu->io[addr - 0xFF00];
+}
+
+uint8_t read_hram(MMU *mmu, uint16_t addr)
+{
+    // !TODO: tmp, not sure if need updating
+    return mmu->hram[addr - 0xFF80];
 }
 
 void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
@@ -115,8 +126,8 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         return;
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
-        // !TODO
-        panic_unimplemented("write_mem oam");
+        write_oam(mmu, addr, val);
+        return;
     case 0xFEA0 ... 0xFEFF:
         // Prohibited memory segment
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
@@ -126,7 +137,8 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         return;
     case 0xFF80 ... 0xFFFE:
         // HRAM
-        panic_unimplemented("write_mem hram");
+        write_hram(mmu, addr, val);
+        return;
     case 0xFFFF:
         // Interrupt enable register
         mmu->interrupt_enable = val;
@@ -178,8 +190,20 @@ void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
     mmu->wram[addr - 0xC000] = val;
 }
 
+void write_oam(MMU *mmu, uint16_t addr, uint8_t val)
+{
+    // !TODO: tmp, not sure if need updating
+    mmu->oam[addr - 0xFE00] = val;
+}
+
 void write_io(MMU *mmu, uint16_t addr, uint8_t val)
 {
     // !TODO: tmp, not sure if need updating
     mmu->io[addr - 0xFF00] = val;
+}
+
+void write_hram(MMU *mmu, uint16_t addr, uint8_t val)
+{
+    // !TODO: tmp, not sure if need updating
+    mmu->hram[addr - 0xFF80] = val;
 }
