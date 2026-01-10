@@ -20,9 +20,10 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         // !TODO
         panic_unimplemented("read_mem wram");
     case 0xE000 ... 0xFDFF:
-        // Prohibited memory segment
-        // !TODO: Echo RAM, some games use this, might need to implement later
-        panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
+        // Mirror RAM
+        // Ninetendo said this is prohibited memory segment
+        addr -= 0x2000;
+        return read_mem(mmu, addr);
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
         // !TODO
@@ -94,9 +95,11 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         // !TODO
         panic_unimplemented("write_mem wram");
     case 0xE000 ... 0xFDFF:
-        // Prohibited memory segment
-        // !TODO: Echo RAM, some games use this, might need to implement later
-        panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
+        // Mirror RAM
+        // Ninetendo said this is prohibited memory segment
+        addr -= 0x2000;
+        write_mem(mmu, addr, val);
+        return;
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
         // !TODO
