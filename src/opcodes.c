@@ -4,145 +4,145 @@
 
 uint8_t decode(CPU *cpu, uint8_t opcode)
 {
-    uint8_t cycles = 0;
-
     switch (opcode)
     {
     case 0x00:
         // NOP
-        cycles = op_00();
-        break;
+        return op_00();
     case 0x01:
         // LD BC, u16
-        cycles = op_01(cpu);
-        break;
+        return op_01(cpu);
     case 0x02:
         // LD (BC), A
-        cycles = op_02(cpu);
-        break;
+        return op_02(cpu);
     case 0x03:
         // INC BC
-        cycles = op_03(cpu);
-        break;
+        return op_03(cpu);
     case 0x04:
         // INC B
-        cycles = op_04(cpu);
-        break;
+        return op_04(cpu);
     case 0x05:
         // DEC B
-        cycles = op_05(cpu);
-        break;
+        return op_05(cpu);
     case 0x06:
         // LD B, u8
-        cycles = op_06(cpu);
-        break;
+        return op_06(cpu);
     case 0x07:
         // RLCA
-        cycles = op_07(cpu);
-        break;
+        return op_07(cpu);
     case 0x08:
         // LD (u16), SP
-        cycles = op_08(cpu);
-        break;
+        return op_08(cpu);
     case 0x09:
         // ADD HL, BC
-        cycles = op_09(cpu);
-        break;
+        return op_09(cpu);
     case 0x0A:
         // LD A, (BC)
-        cycles = op_0a(cpu);
-        break;
+        return op_0a(cpu);
     case 0x0B:
         // DEC BC
-        cycles = op_0b(cpu);
-        break;
+        return op_0b(cpu);
     case 0x0C:
         // INC C
-        cycles = op_0c(cpu);
-        break;
+        return op_0c(cpu);
     case 0x0D:
         // DEC C
-        cycles = op_0d(cpu);
-        break;
+        return op_0d(cpu);
     case 0x0E:
         // LD C, u8
-        cycles = op_0e(cpu);
-        break;
+        return op_0e(cpu);
     case 0x0F:
         // RRCA
-        cycles = op_0f(cpu);
-        break;
+        return op_0f(cpu);
     case 0x10:
         // STOP
-        cycles = op_10(cpu);
-        break;
+        return op_10(cpu);
     case 0x11:
         // LD DE, u16
-        cycles = op_11(cpu);
-        break;
+        return op_11(cpu);
     case 0x12:
         // LD (DE), A
-        cycles = op_12(cpu);
-        break;
+        return op_12(cpu);
     case 0x13:
         // INC DE
-        cycles = op_13(cpu);
-        break;
+        return op_13(cpu);
     case 0x14:
         // INC D
-        cycles = op_14(cpu);
-        break;
+        return op_14(cpu);
     case 0x15:
         // DEC D
-        cycles = op_15(cpu);
-        break;
+        return op_15(cpu);
     case 0x16:
         // LD D, u8
-        cycles = op_16(cpu);
-        break;
+        return op_16(cpu);
     case 0x17:
         // LD RLA
-        cycles = op_17(cpu);
-        break;
+        return op_17(cpu);
     case 0x18:
         // JR i8
-        cycles = op_18(cpu);
-        break;
+        return op_18(cpu);
     case 0x19:
         // ADD HL, DE
-        cycles = op_19(cpu);
-        break;
+        return op_19(cpu);
     case 0x1A:
         // LD A, (DE)
-        cycles = op_1a(cpu);
-        break;
+        return op_1a(cpu);
     case 0x1B:
         // DEC DE
-        cycles = op_1b(cpu);
-        break;
+        return op_1b(cpu);
     case 0x1C:
         // INC E
-        cycles = op_1c(cpu);
-        break;
+        return op_1c(cpu);
     case 0x1D:
         // DEC E
-        cycles = op_1d(cpu);
-        break;
+        return op_1d(cpu);
     case 0x1E:
         // LD E, u8
-        cycles = op_1e(cpu);
-        break;
+        return op_1e(cpu);
     case 0x1F:
         // RRA
-        cycles = op_1f(cpu);
-        break;
+        return op_1f(cpu);
+    case 0x20:
+        // JR NZ, i8
+        return op_20(cpu);
+    case 0x21:
+        // LD HL, u16
+        return op_21(cpu);
+    case 0x22:
+        // LD (HL+), A
+        return op_22(cpu);
+    case 0x23:
+        // INC HL
+        return op_23(cpu);
+    case 0x24:
+        return op_24(cpu);
+    case 0x25:
+        return op_25(cpu);
+    case 0x26:
+        return op_26(cpu);
+    case 0x27:
+        return op_27(cpu);
+    case 0x28:
+        return op_28(cpu);
+    case 0x29:
+        return op_29(cpu);
+    case 0x2A:
+        return op_2a(cpu);
+    case 0x2B:
+        return op_2b(cpu);
+    case 0x2C:
+        return op_2c(cpu);
+    case 0x2D:
+        return op_2d(cpu);
+    case 0x2E:
+        return op_2e(cpu);
+    case 0x2F:
+        return op_2f(cpu);
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
         panic(err_msg, ERR_UNKNOWN_INSTRUCTION);
     }
-
-    return cycles;
 }
 
 // NOP
@@ -403,5 +403,169 @@ uint8_t op_1f(CPU *cpu)
     set_flag(cpu, N_FLAG, 0);
     set_flag(cpu, H_FLAG, 0);
     set_flag(cpu, C_FLAG, c_flag);
+    return 4;
+}
+
+// JR NZ, i8
+uint8_t op_20(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    int8_t operand = (int8_t)cpu_fetch_u8(cpu);
+    if (z_flag)
+    {
+        return 8;
+    }
+    else
+    {
+        cpu->program_counter += operand;
+        return 12;
+    }
+}
+
+// LD HL, u16
+uint8_t op_21(CPU *cpu)
+{
+    set_hl(cpu, cpu_fetch_u16(cpu));
+    return 12;
+}
+
+// LD (HL+), A
+uint8_t op_22(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    write_mem(cpu->mmu, hl, cpu->a);
+    set_hl(cpu, alu_inc_u16(hl));
+    return 8;
+}
+
+// INC HL
+uint8_t op_23(CPU *cpu)
+{
+    uint16_t curr_hl = get_hl(cpu);
+    set_hl(cpu, alu_inc_u16(curr_hl));
+    return 8;
+}
+
+// INC H
+uint8_t op_24(CPU *cpu)
+{
+    alu_inc(cpu, &(cpu->h));
+    return 4;
+}
+
+// DEC H
+uint8_t op_25(CPU *cpu)
+{
+    alu_dec(cpu, &(cpu->h));
+    return 4;
+}
+
+// LD H, u8
+uint8_t op_26(CPU *cpu)
+{
+    cpu->h = cpu_fetch_u8(cpu);
+    return 8;
+}
+
+// DAA
+uint8_t op_27(CPU *cpu)
+{
+    bool n_flag = cpu->flags & N_FLAG ? 1 : 0;
+    bool h_flag = cpu->flags & H_FLAG ? 1 : 0;
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    uint8_t adjustment = 0;
+
+    if (n_flag)
+    {
+        adjustment += h_flag ? 0x06 : 0;
+        adjustment += c_flag ? 0x60 : 0;
+        __builtin_sub_overflow(cpu->a, adjustment, &(cpu->a));
+    }
+    else
+    {
+        if (h_flag || (cpu->a & 0x0F) > 0x09)
+        {
+            adjustment += 0x06;
+        }
+        if (c_flag || cpu->a > 0x99)
+        {
+            adjustment += 0x60;
+            set_flag(cpu, C_FLAG, true);
+        }
+        __builtin_add_overflow(cpu->a, adjustment, &(cpu->a));
+    }
+
+    set_flag(cpu, Z_FLAG, cpu->a == 0);
+    set_flag(cpu, H_FLAG, 0);
+    return 4;
+}
+
+// JR Z, i8
+uint8_t op_28(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    int8_t operand = (int8_t)cpu_fetch_u8(cpu);
+    if (z_flag)
+    {
+        cpu->program_counter += operand;
+        return 12;
+    }
+    else
+    {
+        return 8;
+    }
+}
+
+// ADD HL, HL
+uint8_t op_29(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    alu_add_u16(cpu, hl);
+    return 8;
+}
+
+// LD A, (HL+)
+uint8_t op_2a(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    uint8_t val = read_mem(cpu->mmu, hl);
+    cpu->a = val;
+    set_hl(cpu, alu_inc_u16(hl));
+    return 8;
+}
+
+// DEC HL
+uint8_t op_2b(CPU *cpu)
+{
+    set_hl(cpu, alu_dec_u16(get_hl(cpu)));
+    return 8;
+}
+
+// INC L
+uint8_t op_2c(CPU *cpu)
+{
+    alu_inc(cpu, &(cpu->l));
+    return 4;
+}
+
+// DEC L
+uint8_t op_2d(CPU *cpu)
+{
+    alu_dec(cpu, &(cpu->l));
+    return 4;
+}
+
+// LD L, u8
+uint8_t op_2e(CPU *cpu)
+{
+    uint8_t val = cpu_fetch_u8(cpu);
+    cpu->l = val;
+    return 8;
+}
+
+// CPL
+uint8_t op_2f(CPU *cpu)
+{
+    alu_not(cpu);
     return 4;
 }
