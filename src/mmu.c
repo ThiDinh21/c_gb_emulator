@@ -20,10 +20,9 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         // !TODO
         panic_unimplemented("read_mem wram");
     case 0xE000 ... 0xFDFF:
-        // Mirror RAM
+        // Echo WRAM
         // Ninetendo said this is prohibited memory segment
-        addr -= 0x2000;
-        return read_mem(mmu, addr);
+        return read_mem(mmu, addr - 0x2000);
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
         // !TODO
@@ -95,10 +94,9 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         // !TODO
         panic_unimplemented("write_mem wram");
     case 0xE000 ... 0xFDFF:
-        // Mirror RAM
+        // Echo WRAM
         // Ninetendo said this is prohibited memory segment
-        addr -= 0x2000;
-        write_mem(mmu, addr, val);
+        write_mem(mmu, addr - 0x2000, val);
         return;
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)

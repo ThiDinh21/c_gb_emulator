@@ -1,7 +1,7 @@
 # tool macros
 CC ?= gcc
 WARNINGS := -Wall -Wextra -Werror
-CFLAGS ?= $(WARNINGS) -g -O2
+CFLAGS ?= $(WARNINGS) -g -O2 -fsanitize=address
 LIBFLAGS ?= -I./lib
 STD ?= -std=c2x
 DBGFLAGS := $(WARNINGS) -g -O0
