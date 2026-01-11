@@ -206,6 +206,41 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
         return op_ce(cpu); // ADC A, d8
     case 0xCF:
         return op_cf(cpu); // RST 08H
+    case 0xD0:
+        return op_d0(cpu); // RET NC
+    case 0xD1:
+        return op_d1(cpu); // POP DE
+    case 0xD2:
+        return op_d2(cpu); // JP NC, a16
+    case 0xD3:
+        panic("Invalid opcode: 0xD3", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xD4:
+        return op_d4(cpu); // CALL NC, a16
+    case 0xD5:
+        return op_d5(cpu); // PUSH DE
+    case 0xD6:
+        return op_d6(cpu); // SUB d8
+    case 0xD7:
+        return op_d7(cpu); // RST 10H
+    case 0xD8:
+        return op_d8(cpu); // RET C
+    case 0xD9:
+        return op_d9(cpu); // RETI (Return & Enable Interrupts)
+    case 0xDA:
+        return op_da(cpu); // JP C, a16
+    case 0xDB:
+        panic("Invalid opcode: 0xDB", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xDC:
+        return op_dc(cpu); // CALL C, a16
+    case 0xDD:
+        panic("Invalid opcode: 0xDD", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xDE:
+        return op_de(cpu); // SBC A, d8
+    case 0xDF:
+        return op_df(cpu); // RST 18H
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
@@ -1142,5 +1177,156 @@ uint8_t op_cf(CPU *cpu)
 {
     stack_push(cpu, cpu->program_counter);
     cpu->program_counter = 0x08;
+    return 16;
+}
+
+// RET NC
+uint8_t op_d0(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    if (c_flag)
+    {
+        return 8;
+    }
+    else
+    {
+        cpu->program_counter = stack_pop(cpu);
+        return 20;
+    }
+}
+
+// POP DE
+uint8_t op_d1(CPU *cpu)
+{
+    set_de(cpu, stack_pop(cpu));
+    return 12;
+}
+
+// JP NC, u16
+uint8_t op_d2(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (c_flag)
+    {
+        return 12;
+    }
+    else
+    {
+        cpu->program_counter = operand;
+        return 16;
+    }
+}
+
+// CALL NC, u16
+uint8_t op_d4(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (c_flag)
+    {
+        return 12;
+    }
+    else
+    {
+        stack_push(cpu, cpu->program_counter);
+        cpu->program_counter = operand;
+        return 24;
+    }
+}
+
+// PUSH DE
+uint8_t op_d5(CPU *cpu)
+{
+    stack_push(cpu, get_de(cpu));
+    return 16;
+}
+
+// SUB A, u8
+uint8_t op_d6(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    alu_sub(cpu, operand, false);
+    return 8;
+}
+
+// RST 10h
+uint8_t op_d7(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x10;
+    return 16;
+}
+
+// RET C
+uint8_t op_d8(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    if (c_flag)
+    {
+        cpu->program_counter = stack_pop(cpu);
+        return 20;
+    }
+    else
+    {
+        return 8;
+    }
+}
+
+// RETI
+uint8_t op_d9(CPU *cpu)
+{
+    cpu->ime = 1;
+    cpu->program_counter = stack_pop(cpu);
+    return 16;
+}
+
+// JP C, u16
+uint8_t op_da(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (c_flag)
+    {
+        cpu->program_counter = operand;
+        return 16;
+    }
+    else
+    {
+        return 12;
+    }
+}
+
+// CALL C, u16
+uint8_t op_dc(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (c_flag)
+    {
+        stack_push(cpu, cpu->program_counter);
+        cpu->program_counter = operand;
+        return 24;
+    }
+    else
+    {
+        return 12;
+    }
+}
+
+// SBC A, u8
+uint8_t op_de(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    alu_sub(cpu, operand, c_flag);
+    return 8;
+}
+
+// RST 18h
+uint8_t op_df(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x18;
     return 16;
 }
