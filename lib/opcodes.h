@@ -128,4 +128,14 @@ uint8_t op_fb(CPU *cpu);
 uint8_t op_fe(CPU *cpu);
 uint8_t op_ff(CPU *cpu);
 
+// CB related
+void rlc(CPU *cpu, uint8_t *ptr);
+void rrc(CPU *cpu, uint8_t *ptr);
+void rl(CPU *cpu, uint8_t *ptr);
+void rr(CPU *cpu, uint8_t *ptr);
+void sla(CPU *cpu, uint8_t *ptr);
+void sra(CPU *cpu, uint8_t *ptr);
+void swap(CPU *cpu, uint8_t *ptr);
+void srl(CPU *cpu, uint8_t *ptr);
+
 #endif

@@ -1589,3 +1589,102 @@ uint8_t op_ff(CPU *cpu)
     cpu->program_counter = 0x38;
     return 16;
 }
+
+// RLC r8/(HL)
+void rlc(CPU *cpu, uint8_t *ptr)
+{
+    bool c_flag = *ptr >> 7;
+    *ptr = (*ptr << 1) | c_flag;
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// RRC r8/(HL)
+void rrc(CPU *cpu, uint8_t *ptr)
+{
+    bool c_flag = *ptr & 0x01;
+    *ptr = (*ptr >> 1) | (c_flag << 7);
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// RL r8/(HL)
+void rl(CPU *cpu, uint8_t *ptr)
+{
+    uint8_t c_flag_old = cpu->flags & C_FLAG ? 1 : 0;
+    bool c_flag = *ptr >> 7;
+    *ptr = (*ptr << 1) | c_flag_old;
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// RR r8/(HL)
+void rr(CPU *cpu, uint8_t *ptr)
+{
+    bool c_flag_old = cpu->flags & C_FLAG ? 1 : 0;
+    bool c_flag = *ptr & 0x01;
+    *ptr = (*ptr >> 1) | (c_flag_old << 7);
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// SLA r8/(HL)
+void sla(CPU *cpu, uint8_t *ptr)
+{
+    bool c_flag = *ptr >> 7;
+    *ptr = *ptr << 1;
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// SRA r8/(HL)
+void sra(CPU *cpu, uint8_t *ptr)
+{
+    bool c_flag = *ptr & 0x01;
+    uint8_t msb = *ptr & (1 << 7);
+    *ptr = *ptr >> 1 | msb;
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// SWAP r8/(HL)
+void swap(CPU *cpu, uint8_t *ptr)
+{
+    uint16_t upper_byte = (*ptr & 0xF0) >> 4;
+    *ptr = (*ptr << 4) | upper_byte;
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, 0);
+}
+
+// SRL r8/(HL)
+void srl(CPU *cpu, uint8_t *ptr)
+{
+    bool c_flag = *ptr & 0x01;
+    *ptr = *ptr >> 1;
+
+    set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
