@@ -31,7 +31,7 @@ void alu_sub(CPU *cpu, uint8_t val, bool carry)
 
     if (carry)
     {
-        h_flag = res < 1;
+        h_flag = ((res & 0x0F) == 0) | h_flag;
         new_carry = __builtin_sub_overflow(res, 1, &res) | new_carry;
     }
 
