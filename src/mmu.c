@@ -26,7 +26,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         return read_oam(mmu, addr);
     case 0xFEA0 ... 0xFEFF:
 #ifdef UNITY_TEST_RUN
-        return read_mem(mmu, addr - 0xFEA0);
+        return mmu->prohibit[addr - 0xFEA0];
 #endif
         // Prohibited memory segment
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
@@ -134,7 +134,7 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
     case 0xFEA0 ... 0xFEFF:
         // Prohibited memory segment
 #ifdef UNITY_TEST_RUN
-        write_mem(mmu, addr - 0xFEA0, val);
+        mmu->prohibit[addr - 0xFEA0] = val;
         return;
 #endif
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
