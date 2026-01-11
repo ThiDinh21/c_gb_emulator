@@ -241,6 +241,43 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
         return op_de(cpu); // SBC A, d8
     case 0xDF:
         return op_df(cpu); // RST 18H
+    case 0xE0:
+        return op_e0(cpu); // LDH (a8), A  (Write A to 0xFF00 + a8)
+    case 0xE1:
+        return op_e1(cpu); // POP HL
+    case 0xE2:
+        return op_e2(cpu); // LD (C), A    (Write A to 0xFF00 + C)
+    case 0xE3:
+        panic("Invalid opcode: 0xE3", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xE4:
+        panic("Invalid opcode: 0xE4", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xE5:
+        return op_e5(cpu); // PUSH HL
+    case 0xE6:
+        return op_e6(cpu); // AND d8
+    case 0xE7:
+        return op_e7(cpu); // RST 20H
+    case 0xE8:
+        return op_e8(cpu); // ADD SP, r8
+    case 0xE9:
+        return op_e9(cpu); // JP (HL)
+    case 0xEA:
+        return op_ea(cpu); // LD (a16), A
+    case 0xEB:
+        panic("Invalid opcode: 0xEB", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xEC:
+        panic("Invalid opcode: 0xEC", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xED:
+        panic("Invalid opcode: 0xED", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xEE:
+        return op_ee(cpu); // XOR d8
+    case 0xEF:
+        return op_ef(cpu); // RST 28H
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
@@ -1328,5 +1365,90 @@ uint8_t op_df(CPU *cpu)
 {
     stack_push(cpu, cpu->program_counter);
     cpu->program_counter = 0x18;
+    return 16;
+}
+
+// LD (FF00+u8), A
+uint8_t op_e0(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    write_mem(cpu->mmu, 0xFF00 + operand, cpu->a);
+    return 12;
+}
+
+// POP HL
+uint8_t op_e1(CPU *cpu)
+{
+    set_hl(cpu, stack_pop(cpu));
+    return 12;
+}
+
+// LD (FF00+C), A
+uint8_t op_e2(CPU *cpu)
+{
+    write_mem(cpu->mmu, 0xFF00 + cpu->c, cpu->a);
+    return 8;
+}
+
+// PUSH HL
+uint8_t op_e5(CPU *cpu)
+{
+    stack_push(cpu, get_hl(cpu));
+    return 16;
+}
+
+// AND A, u8
+uint8_t op_e6(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    alu_and(cpu, operand);
+    return 8;
+}
+
+// RST 20h
+uint8_t op_e7(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x20;
+    return 16;
+}
+
+// ADD SP, i8
+uint8_t op_e8(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    // operand is converted to int8_t inside here
+    alu_add_sp(cpu, operand);
+    return 16;
+}
+
+// JP HL
+uint8_t op_e9(CPU *cpu)
+{
+    cpu->program_counter = get_hl(cpu);
+    return 4;
+}
+
+// LD (u16), A
+uint8_t op_ea(CPU *cpu)
+{
+    uint16_t operand = cpu_fetch_u16(cpu);
+    write_mem(cpu->mmu, operand, cpu->a);
+    return 16;
+}
+
+// XOR A, u8
+uint8_t op_ee(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    alu_xor(cpu, operand);
+    return 8;
+}
+
+// RST 28h
+uint8_t op_ef(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x28;
     return 16;
 }
