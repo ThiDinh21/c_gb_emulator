@@ -138,6 +138,38 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
         return op_2e(cpu);
     case 0x2F:
         return op_2f(cpu);
+    case 0x30:
+        return op_30(cpu);
+    case 0x31:
+        return op_31(cpu);
+    case 0x32:
+        return op_32(cpu);
+    case 0x33:
+        return op_33(cpu);
+    case 0x34:
+        return op_34(cpu);
+    case 0x35:
+        return op_35(cpu);
+    case 0x36:
+        return op_36(cpu);
+    case 0x37:
+        return op_37(cpu);
+    case 0x38:
+        return op_38(cpu);
+    case 0x39:
+        return op_39(cpu);
+    case 0x3A:
+        return op_3a(cpu);
+    case 0x3B:
+        return op_3b(cpu);
+    case 0x3C:
+        return op_3c(cpu);
+    case 0x3D:
+        return op_3d(cpu);
+    case 0x3E:
+        return op_3e(cpu);
+    case 0x3F:
+        return op_3f(cpu);
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
@@ -567,5 +599,162 @@ uint8_t op_2e(CPU *cpu)
 uint8_t op_2f(CPU *cpu)
 {
     alu_not(cpu);
+    return 4;
+}
+
+// JR NC, i8
+uint8_t op_30(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    int8_t operand = (int8_t)cpu_fetch_u8(cpu);
+    if (c_flag)
+    {
+        return 8;
+    }
+    else
+    {
+        cpu->program_counter += operand;
+        return 12;
+    }
+}
+
+// LD SP, u16
+uint8_t op_31(CPU *cpu)
+{
+    cpu->sp = cpu_fetch_u16(cpu);
+    return 12;
+}
+
+// LD (HL-), A
+uint8_t op_32(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    write_mem(cpu->mmu, hl, cpu->a);
+    set_hl(cpu, alu_dec_u16(hl));
+    return 8;
+}
+
+// INC SP
+uint8_t op_33(CPU *cpu)
+{
+    cpu->sp = alu_inc_u16(cpu->sp);
+    return 8;
+}
+
+// INC (HL)
+uint8_t op_34(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    uint8_t val = read_mem(cpu->mmu, hl);
+    val++;
+    write_mem(cpu->mmu, hl, val);
+
+    set_flag(cpu, Z_FLAG, val == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, (val & 0x0F) == 0);
+    return 12;
+}
+
+// DEC (HL)
+uint8_t op_35(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    uint8_t val = read_mem(cpu->mmu, hl);
+    val--;
+    write_mem(cpu->mmu, hl, val);
+
+    set_flag(cpu, Z_FLAG, val == 0);
+    set_flag(cpu, N_FLAG, 1);
+    set_flag(cpu, H_FLAG, (val & 0x0F) == 0x0F);
+    return 12;
+}
+
+// LD (HL), u8
+uint8_t op_36(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    write_mem(cpu->mmu, hl, cpu_fetch_u8(cpu));
+    return 12;
+}
+
+// SCF
+uint8_t op_37(CPU *cpu)
+{
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, 1);
+    return 4;
+}
+
+// JR C, i8
+uint8_t op_38(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    int8_t operand = (int8_t)cpu_fetch_u8(cpu);
+    if (c_flag)
+    {
+        cpu->program_counter += operand;
+        return 12;
+    }
+    else
+    {
+        return 8;
+    }
+}
+
+// ADD HL, SP
+uint8_t op_39(CPU *cpu)
+{
+    alu_add_u16(cpu, cpu->sp);
+    return 8;
+}
+
+// LD A, (HL-)
+uint8_t op_3a(CPU *cpu)
+{
+    uint16_t hl = get_hl(cpu);
+    uint8_t val = read_mem(cpu->mmu, hl);
+    cpu->a = val;
+    set_hl(cpu, alu_dec_u16(hl));
+    return 8;
+}
+
+// DEC SP
+uint8_t op_3b(CPU *cpu)
+{
+    cpu->sp--;
+    return 8;
+}
+
+// INC A
+uint8_t op_3c(CPU *cpu)
+{
+    alu_inc(cpu, &(cpu->a));
+    return 4;
+}
+
+// DEC A
+uint8_t op_3d(CPU *cpu)
+{
+    alu_dec(cpu, &(cpu->a));
+    return 4;
+}
+
+// LD A, u8
+uint8_t op_3e(CPU *cpu)
+{
+    uint8_t val = cpu_fetch_u8(cpu);
+    cpu->a = val;
+    return 8;
+}
+
+// CCF
+uint8_t op_3f(CPU *cpu)
+{
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, !c_flag);
     return 4;
 }

@@ -55,5 +55,21 @@ uint8_t op_2c(CPU *cpu);
 uint8_t op_2d(CPU *cpu);
 uint8_t op_2e(CPU *cpu);
 uint8_t op_2f(CPU *cpu);
+uint8_t op_30(CPU *cpu);
+uint8_t op_31(CPU *cpu);
+uint8_t op_32(CPU *cpu);
+uint8_t op_33(CPU *cpu);
+uint8_t op_34(CPU *cpu);
+uint8_t op_35(CPU *cpu);
+uint8_t op_36(CPU *cpu);
+uint8_t op_37(CPU *cpu);
+uint8_t op_38(CPU *cpu);
+uint8_t op_39(CPU *cpu);
+uint8_t op_3a(CPU *cpu);
+uint8_t op_3b(CPU *cpu);
+uint8_t op_3c(CPU *cpu);
+uint8_t op_3d(CPU *cpu);
+uint8_t op_3e(CPU *cpu);
+uint8_t op_3f(CPU *cpu);
 
 #endif
