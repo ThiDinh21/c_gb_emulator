@@ -126,3 +126,17 @@ uint16_t cpu_fetch_u16(CPU *cpu)
     cpu->program_counter += 2;
     return val;
 }
+
+void stack_push(CPU *cpu, uint16_t val)
+{
+
+    cpu->sp -= 2;
+    write_mem_u16(cpu->mmu, cpu->sp, val);
+}
+
+uint16_t stack_pop(CPU *cpu)
+{
+    uint16_t res = read_mem_u16(cpu->mmu, cpu->sp);
+    cpu->sp += 2;
+    return res;
+}

@@ -60,4 +60,7 @@ void set_flag(CPU *cpu, FlagRegister flag, uint8_t val);
 uint8_t cpu_fetch_u8(CPU *cpu);
 uint16_t cpu_fetch_u16(CPU *cpu);
 
+void stack_push(CPU *cpu, uint16_t val);
+uint16_t stack_pop(CPU *cpu);
+
 #endif
