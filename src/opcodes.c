@@ -331,6 +331,7 @@ uint8_t decode_cb(CPU *cpu, uint8_t opcode)
     uint8_t *value;
     uint16_t hl = get_hl(cpu);
     bool is_hl = false;
+    uint8_t hl_byte = read_mem(cpu->mmu, hl);
 
     switch (bbb)
     {
@@ -353,7 +354,7 @@ uint8_t decode_cb(CPU *cpu, uint8_t opcode)
         value = &cpu->l;
         break;
     case 0b110:
-        value = NULL;
+        value = &hl_byte;
         is_hl = true;
         break;
     case 0b111:
@@ -428,6 +429,30 @@ uint8_t decode_cb(CPU *cpu, uint8_t opcode)
             break;
         }
         sra(cpu, value);
+        break;
+    case 0b01000:
+        bit(cpu, *value, 0);
+        break;
+    case 0b01001:
+        bit(cpu, *value, 1);
+        break;
+    case 0b01010:
+        bit(cpu, *value, 2);
+        break;
+    case 0b01011:
+        bit(cpu, *value, 3);
+        break;
+    case 0b01100:
+        bit(cpu, *value, 4);
+        break;
+    case 0b01101:
+        bit(cpu, *value, 5);
+        break;
+    case 0b01110:
+        bit(cpu, *value, 6);
+        break;
+    case 0b01111:
+        bit(cpu, *value, 7);
         break;
     default:
         panic_unimplemented("CB");
@@ -1922,4 +1947,13 @@ void srl_hl(CPU *cpu, uint16_t hl)
     set_flag(cpu, N_FLAG, 0);
     set_flag(cpu, H_FLAG, 0);
     set_flag(cpu, C_FLAG, c_flag);
+}
+
+// BIT u3, r8
+void bit(CPU *cpu, uint8_t val, uint8_t bit_num)
+{
+    uint8_t test_bit = val & (1 << bit_num) ? 1 : 0;
+    set_flag(cpu, Z_FLAG, test_bit == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 1);
 }

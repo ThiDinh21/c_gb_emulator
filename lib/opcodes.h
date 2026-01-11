@@ -148,4 +148,6 @@ void sra_hl(CPU *cpu, uint16_t hl);
 void swap_hl(CPU *cpu, uint16_t hl);
 void srl_hl(CPU *cpu, uint16_t hl);
 
+void bit(CPU *cpu, uint8_t val, uint8_t bit_num);
+
 #endif
