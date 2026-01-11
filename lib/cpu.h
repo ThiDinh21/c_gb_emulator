@@ -32,6 +32,7 @@ typedef struct
     uint16_t program_counter;
     uint8_t flags;
     uint8_t ime;
+    uint8_t ime_pending; // Since EI delay enabling ime by 1 operation
     uint8_t a, b, c, d, e, h, l;
     MMU *mmu;
 } CPU;

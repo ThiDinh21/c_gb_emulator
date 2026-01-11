@@ -30,6 +30,13 @@ uint8_t cpu_step(CPU *cpu)
 
     // Execute opcode
     cycles = decode(cpu, opcode);
+
+    if (cpu->ime_pending)
+    {
+        cpu->ime = 1;
+        cpu->ime_pending = 0;
+    }
+
     return cycles;
 }
 

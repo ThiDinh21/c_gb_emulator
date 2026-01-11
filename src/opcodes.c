@@ -278,6 +278,41 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
         return op_ee(cpu); // XOR d8
     case 0xEF:
         return op_ef(cpu); // RST 28H
+    case 0xF0:
+        return op_f0(cpu); // LDH A, (a8)
+    case 0xF1:
+        return op_f1(cpu); // POP AF
+    case 0xF2:
+        return op_f2(cpu); // LD A, (C)
+    case 0xF3:
+        return op_f3(cpu); // DI (Disable Interrupts)
+    case 0xF4:
+        panic("Invalid opcode: 0xF4", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xF5:
+        return op_f5(cpu); // PUSH AF
+    case 0xF6:
+        return op_f6(cpu); // OR d8
+    case 0xF7:
+        return op_f7(cpu); // RST 30H
+    case 0xF8:
+        return op_f8(cpu); // LD HL, SP+r8
+    case 0xF9:
+        return op_f9(cpu); // LD SP, HL
+    case 0xFA:
+        return op_fa(cpu); // LD A, (a16)
+    case 0xFB:
+        return op_fb(cpu); // EI (Enable Interrupts)
+    case 0xFC:
+        panic("Invalid opcode: 0xFC", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xFD:
+        panic("Invalid opcode: 0xFD", ERR_UNKNOWN_INSTRUCTION);
+        return op_00(); // Invalid (No operation)
+    case 0xFE:
+        return op_fe(cpu); // CP d8
+    case 0xFF:
+        return op_ff(cpu); // RST 38H
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
@@ -1450,5 +1485,107 @@ uint8_t op_ef(CPU *cpu)
 {
     stack_push(cpu, cpu->program_counter);
     cpu->program_counter = 0x28;
+    return 16;
+}
+
+// LD A, (FF00+u8)
+uint8_t op_f0(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    cpu->a = read_mem(cpu->mmu, 0xFF00 + operand);
+    return 12;
+}
+
+// POP AF
+uint8_t op_f1(CPU *cpu)
+{
+    set_af(cpu, stack_pop(cpu));
+    return 12;
+}
+
+// LD A, (FF00+C)
+uint8_t op_f2(CPU *cpu)
+{
+    cpu->a = read_mem(cpu->mmu, 0xFF00 + cpu->c);
+    return 8;
+}
+
+// DI
+uint8_t op_f3(CPU *cpu)
+{
+    cpu->ime = 0;
+    return 4;
+}
+
+// PUSH AF
+uint8_t op_f5(CPU *cpu)
+{
+    stack_push(cpu, get_af(cpu));
+    return 16;
+}
+
+// OR A, u8
+uint8_t op_f6(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    alu_or(cpu, operand);
+    return 8;
+}
+
+// RST 30h
+uint8_t op_f7(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x30;
+    return 16;
+}
+
+// LD HL, SP+i8
+uint8_t op_f8(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    uint16_t old_sp = cpu->sp;
+    // To set flags and convert operand to int8_t
+    alu_add_sp(cpu, operand);
+    set_hl(cpu, cpu->sp);
+    cpu->sp = old_sp;
+    return 12;
+}
+
+// LD SP, HL
+uint8_t op_f9(CPU *cpu)
+{
+    cpu->sp = get_hl(cpu);
+    return 8;
+}
+
+// LD A, (u16)
+uint8_t op_fa(CPU *cpu)
+{
+    uint16_t operand = cpu_fetch_u16(cpu);
+    cpu->a = read_mem(cpu->mmu, operand);
+    return 16;
+}
+
+// EI
+uint8_t op_fb(CPU *cpu)
+{
+    cpu->ime_pending = 1;
+    return 4;
+}
+
+// CP A, u8
+uint8_t op_fe(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    alu_compare(cpu, operand);
+    return 8;
+}
+
+// RST 38h
+uint8_t op_ff(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x38;
     return 16;
 }
