@@ -454,12 +454,80 @@ uint8_t decode_cb(CPU *cpu, uint8_t opcode)
     case 0b01111:
         bit(cpu, *value, 7);
         break;
+    case 0b10000:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 0);
+            break;
+        }
+        res(value, 0);
+        break;
+    case 0b10001:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 1);
+            break;
+        }
+        res(value, 1);
+        break;
+    case 0b10010:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 2);
+            break;
+        }
+        res(value, 2);
+        break;
+    case 0b10011:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 3);
+            break;
+        }
+        res(value, 3);
+        break;
+    case 0b10100:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 4);
+            break;
+        }
+        res(value, 4);
+        break;
+    case 0b10101:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 5);
+            break;
+        }
+        res(value, 5);
+        break;
+    case 0b10110:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 6);
+            break;
+        }
+        res(value, 6);
+        break;
+    case 0b10111:
+        if (is_hl)
+        {
+            res_hl(cpu, hl, 7);
+            break;
+        }
+        res(value, 7);
+        break;
     default:
         panic_unimplemented("CB");
     }
 
     if (bbb == 0x06)
     {
+        if (aaaaa >= 0x40 && aaaaa <= 0x78)
+        {
+            return 12;
+        }
         return 16;
     }
     return 8;
@@ -1956,4 +2024,20 @@ void bit(CPU *cpu, uint8_t val, uint8_t bit_num)
     set_flag(cpu, Z_FLAG, test_bit == 0);
     set_flag(cpu, N_FLAG, 0);
     set_flag(cpu, H_FLAG, 1);
+}
+
+// RES u3, r8
+void res(uint8_t *ptr, uint8_t bit_num)
+{
+    uint8_t mask = ~(1 << bit_num);
+    *ptr = *ptr & mask;
+}
+
+// RES u3, (HL)
+void res_hl(CPU *cpu, uint16_t hl, uint8_t bit_num)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    uint8_t mask = ~(1 << bit_num);
+    value = value & mask;
+    write_mem(cpu->mmu, hl, value);
 }

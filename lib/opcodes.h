@@ -149,5 +149,7 @@ void swap_hl(CPU *cpu, uint16_t hl);
 void srl_hl(CPU *cpu, uint16_t hl);
 
 void bit(CPU *cpu, uint8_t val, uint8_t bit_num);
+void res(uint8_t *ptr, uint8_t bit_num);
+void res_hl(CPU *cpu, uint16_t hl, uint8_t bit_num);
 
 #endif
