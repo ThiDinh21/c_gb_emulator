@@ -174,6 +174,38 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
         return op_40_to_7f(cpu, opcode);
     case 0x80 ... 0xBF:
         return op_80_to_bf(cpu, opcode);
+    case 0xC0:
+        return op_c0(cpu); // RET NZ
+    case 0xC1:
+        return op_c1(cpu); // POP BC
+    case 0xC2:
+        return op_c2(cpu); // JP NZ, a16
+    case 0xC3:
+        return op_c3(cpu); // JP a16
+    case 0xC4:
+        return op_c4(cpu); // CALL NZ, a16
+    case 0xC5:
+        return op_c5(cpu); // PUSH BC
+    case 0xC6:
+        return op_c6(cpu); // ADD A, d8
+    case 0xC7:
+        return op_c7(cpu); // RST 00H
+    case 0xC8:
+        return op_c8(cpu); // RET Z
+    case 0xC9:
+        return op_c9(cpu); // RET
+    case 0xCA:
+        return op_ca(cpu); // JP Z, a16
+    case 0xCB:
+        return op_cb(cpu); // PREFIX CB
+    case 0xCC:
+        return op_cc(cpu); // CALL Z, a16
+    case 0xCD:
+        return op_cd(cpu); // CALL a16
+    case 0xCE:
+        return op_ce(cpu); // ADC A, d8
+    case 0xCF:
+        return op_cf(cpu); // RST 08H
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
@@ -937,4 +969,178 @@ uint8_t op_80_to_bf(CPU *cpu, uint8_t opcode)
         return 8;
     }
     return 4;
+}
+
+// RET NZ
+uint8_t op_c0(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    if (z_flag)
+    {
+        return 8;
+    }
+    else
+    {
+        cpu->program_counter = stack_pop(cpu);
+        return 20;
+    }
+}
+
+// POP BC
+uint8_t op_c1(CPU *cpu)
+{
+    set_bc(cpu, stack_pop(cpu));
+    return 12;
+}
+
+// JP NZ, u16
+uint8_t op_c2(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (z_flag)
+    {
+        return 12;
+    }
+    else
+    {
+        cpu->program_counter = operand;
+        return 16;
+    }
+}
+
+// JP u16
+uint8_t op_c3(CPU *cpu)
+{
+    uint16_t operand = cpu_fetch_u16(cpu);
+    cpu->program_counter = operand;
+    return 16;
+}
+
+// CALL NZ, u16
+uint8_t op_c4(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (z_flag)
+    {
+        return 12;
+    }
+    else
+    {
+        stack_push(cpu, cpu->program_counter);
+        cpu->program_counter = operand;
+        return 24;
+    }
+}
+
+// PUSH BC
+uint8_t op_c5(CPU *cpu)
+{
+    stack_push(cpu, get_bc(cpu));
+    return 16;
+}
+
+// ADD A, u8
+uint8_t op_c6(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    alu_add(cpu, operand, false);
+    return 8;
+}
+
+// RST 00h
+uint8_t op_c7(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x00;
+    return 16;
+}
+
+// RET Z
+uint8_t op_c8(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    if (z_flag)
+    {
+        cpu->program_counter = stack_pop(cpu);
+        return 20;
+    }
+    else
+    {
+        return 8;
+    }
+}
+
+// RET
+uint8_t op_c9(CPU *cpu)
+{
+    cpu->program_counter = stack_pop(cpu);
+    return 16;
+}
+
+// JP Z, u16
+uint8_t op_ca(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (z_flag)
+    {
+        cpu->program_counter = operand;
+        return 16;
+    }
+    else
+    {
+        return 12;
+    }
+}
+
+// PREFIX CB
+uint8_t op_cb(CPU *cpu)
+{
+    panic_unimplemented("op_cb");
+    cpu->h = 0;
+}
+
+// CALL Z, u16
+uint8_t op_cc(CPU *cpu)
+{
+    bool z_flag = cpu->flags & Z_FLAG ? 1 : 0;
+    uint16_t operand = cpu_fetch_u16(cpu);
+    if (z_flag)
+    {
+        stack_push(cpu, cpu->program_counter);
+        cpu->program_counter = operand;
+        return 24;
+    }
+    else
+    {
+        return 12;
+    }
+}
+
+// CALL u16
+uint8_t op_cd(CPU *cpu)
+{
+    uint16_t operand = cpu_fetch_u16(cpu);
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = operand;
+    return 24;
+}
+
+// ADC A, u8
+uint8_t op_ce(CPU *cpu)
+{
+    uint8_t operand = cpu_fetch_u8(cpu);
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+    alu_add(cpu, operand, c_flag);
+    return 8;
+}
+
+// RST 08h
+uint8_t op_cf(CPU *cpu)
+{
+    stack_push(cpu, cpu->program_counter);
+    cpu->program_counter = 0x08;
+    return 16;
 }
