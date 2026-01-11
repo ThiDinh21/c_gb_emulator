@@ -518,6 +518,70 @@ uint8_t decode_cb(CPU *cpu, uint8_t opcode)
         }
         res(value, 7);
         break;
+    case 0b11000:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 0);
+            break;
+        }
+        op_set(value, 0);
+        break;
+    case 0b11001:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 1);
+            break;
+        }
+        op_set(value, 1);
+        break;
+    case 0b11010:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 2);
+            break;
+        }
+        op_set(value, 2);
+        break;
+    case 0b11011:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 3);
+            break;
+        }
+        op_set(value, 3);
+        break;
+    case 0b11100:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 4);
+            break;
+        }
+        op_set(value, 4);
+        break;
+    case 0b11101:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 5);
+            break;
+        }
+        op_set(value, 5);
+        break;
+    case 0b11110:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 6);
+            break;
+        }
+        op_set(value, 6);
+        break;
+    case 0b11111:
+        if (is_hl)
+        {
+            op_set_hl(cpu, hl, 7);
+            break;
+        }
+        op_set(value, 7);
+        break;
     default:
         panic_unimplemented("CB");
     }
@@ -2039,5 +2103,21 @@ void res_hl(CPU *cpu, uint16_t hl, uint8_t bit_num)
     uint8_t value = read_mem(cpu->mmu, hl);
     uint8_t mask = ~(1 << bit_num);
     value = value & mask;
+    write_mem(cpu->mmu, hl, value);
+}
+
+// SET u3, r8
+void op_set(uint8_t *ptr, uint8_t bit_num)
+{
+    uint8_t mask = 1 << bit_num;
+    *ptr = *ptr | mask;
+}
+
+// SET u3, (HL)
+void op_set_hl(CPU *cpu, uint16_t hl, uint8_t bit_num)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    uint8_t mask = 1 << bit_num;
+    value = value | mask;
     write_mem(cpu->mmu, hl, value);
 }
