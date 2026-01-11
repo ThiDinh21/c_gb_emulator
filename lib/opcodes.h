@@ -73,5 +73,6 @@ uint8_t op_3e(CPU *cpu);
 uint8_t op_3f(CPU *cpu);
 uint8_t op_76(CPU *cpu);
 uint8_t op_40_to_7f(CPU *cpu, uint8_t opcode);
+uint8_t op_80_to_bf(CPU *cpu, uint8_t opcode);
 
 #endif

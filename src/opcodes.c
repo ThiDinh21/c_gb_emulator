@@ -172,6 +172,8 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
         return op_3f(cpu);
     case 0x40 ... 0x7F:
         return op_40_to_7f(cpu, opcode);
+    case 0x80 ... 0xBF:
+        return op_80_to_bf(cpu, opcode);
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
@@ -849,6 +851,88 @@ uint8_t op_40_to_7f(CPU *cpu, uint8_t opcode)
     }
 
     if (bbb == 0b110 || ccc == 0b110)
+    {
+        return 8;
+    }
+    return 4;
+}
+
+// ADD/ADC/SUV/SBC/AND/XOR/OR/CP A, r8/(HL)
+uint8_t op_80_to_bf(CPU *cpu, uint8_t opcode)
+{
+    // opcode in this range can be written as 0xAABBBCCC
+    // All except 1 have the following mnemonic: OP A, x
+    // AA will always be 01
+    // BBB from 000->111: determines OP
+    // CCC from 000->111: determines x
+    uint8_t bbb = (opcode & 0b00111000) >> 3;
+    uint8_t ccc = (opcode & 0b00000111);
+    uint16_t hl = get_hl(cpu);
+    bool c_flag = cpu->flags & C_FLAG ? 1 : 0;
+
+    uint8_t val;
+
+    switch (ccc)
+    {
+    case 0b000:
+        val = cpu->b;
+        break;
+    case 0b001:
+        val = cpu->c;
+        break;
+    case 0b010:
+        val = cpu->d;
+        break;
+    case 0b011:
+        val = cpu->e;
+        break;
+    case 0b100:
+        val = cpu->h;
+        break;
+    case 0b101:
+        val = cpu->l;
+        break;
+    case 0b110:
+        val = read_mem(cpu->mmu, hl);
+        break;
+    case 0b111:
+        val = cpu->a;
+        break;
+    default:
+        panic("Unrecognize opcode in block 0x80-0xBF", ERR_UNKNOWN_INSTRUCTION);
+    }
+
+    switch (bbb)
+    {
+    case 0b000:
+        alu_add(cpu, val, false);
+        break;
+    case 0b001:
+        alu_add(cpu, val, c_flag);
+        break;
+    case 0b010:
+        alu_sub(cpu, val, false);
+        break;
+    case 0b011:
+        alu_sub(cpu, val, c_flag);
+        break;
+    case 0b100:
+        alu_and(cpu, val);
+        break;
+    case 0b101:
+        alu_xor(cpu, val);
+        break;
+    case 0b110:
+        alu_or(cpu, val);
+        break;
+    case 0b111:
+        alu_compare(cpu, val);
+        break;
+    default:
+        panic("Unrecognize opcode in block 0x80-0xBF", ERR_UNKNOWN_INSTRUCTION);
+    }
+
+    if (ccc == 0b110)
     {
         return 8;
     }
