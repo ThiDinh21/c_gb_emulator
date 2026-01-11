@@ -40,6 +40,13 @@ void cpu_stop(CPU *cpu)
     cpu->h = 0;
 }
 
+void cpu_halt(CPU *cpu)
+{
+    // !TODO
+    panic_unimplemented("cpu_halt");
+    cpu->h = 0;
+}
+
 uint16_t get_af(CPU *cpu)
 {
     return (cpu->a << 8) | cpu->flags;

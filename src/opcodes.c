@@ -170,6 +170,8 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
         return op_3e(cpu);
     case 0x3F:
         return op_3f(cpu);
+    case 0x40 ... 0x7F:
+        return op_40_to_7f(cpu, opcode);
     default:
         char err_msg[30];
         snprintf(err_msg, 30, "Opcode not recognized: 0x%x\n", opcode);
@@ -756,5 +758,99 @@ uint8_t op_3f(CPU *cpu)
     set_flag(cpu, N_FLAG, 0);
     set_flag(cpu, H_FLAG, 0);
     set_flag(cpu, C_FLAG, !c_flag);
+    return 4;
+}
+
+// HALT
+uint8_t op_76(CPU *cpu)
+{
+    cpu_halt(cpu);
+    return 4;
+}
+
+// LD r8/(HL), r8/(HL) and HALT
+uint8_t op_40_to_7f(CPU *cpu, uint8_t opcode)
+{
+    // 0x76 is HALT unlike all others
+    if (opcode == 0x76)
+    {
+        return op_76(cpu);
+    }
+
+    // opcode in this range can be written as 0xAABBBCCC
+    // All except 1 have the following mnemonic: LD m, n
+    // AA will always be 01
+    // BBB from 000->111: determines m
+    // CCC from 000->111: determines n
+    uint8_t bbb = (opcode & 0b00111000) >> 3;
+    uint8_t ccc = (opcode & 0b00000111);
+    uint16_t hl = get_hl(cpu);
+
+    uint8_t val;
+
+    switch (ccc)
+    {
+    case 0b000:
+        val = cpu->b;
+        break;
+    case 0b001:
+        val = cpu->c;
+        break;
+    case 0b010:
+        val = cpu->d;
+        break;
+    case 0b011:
+        val = cpu->e;
+        break;
+    case 0b100:
+        val = cpu->h;
+        break;
+    case 0b101:
+        val = cpu->l;
+        break;
+    case 0b110:
+        val = read_mem(cpu->mmu, hl);
+        break;
+    case 0b111:
+        val = cpu->a;
+        break;
+    default:
+        panic("Unrecognize opcode in block 0x40-0x7F", ERR_UNKNOWN_INSTRUCTION);
+    }
+
+    switch (bbb)
+    {
+    case 0b000:
+        cpu->b = val;
+        break;
+    case 0b001:
+        cpu->c = val;
+        break;
+    case 0b010:
+        cpu->d = val;
+        break;
+    case 0b011:
+        cpu->e = val;
+        break;
+    case 0b100:
+        cpu->h = val;
+        break;
+    case 0b101:
+        cpu->l = val;
+        break;
+    case 0b110:
+        write_mem(cpu->mmu, hl, val);
+        break;
+    case 0b111:
+        cpu->a = val;
+        break;
+    default:
+        panic("Unrecognize opcode in block 0x40-0x7F", ERR_UNKNOWN_INSTRUCTION);
+    }
+
+    if (bbb == 0b110 || ccc == 0b110)
+    {
+        return 8;
+    }
     return 4;
 }
