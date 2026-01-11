@@ -320,6 +320,126 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
     }
 }
 
+uint8_t decode_cb(CPU *cpu, uint8_t opcode)
+{
+    // All CB-prefixed opcodes can be written as 0bAAAAABBB
+    // All except first 4 rows have the following mnemonic: OP m, n
+    // AAAAA from 00000->11111: determines OP m
+    // BBB from 000->111: determines n
+    uint8_t aaaaa = (opcode & 0b11111000) >> 3;
+    uint8_t bbb = opcode & 0b00000111;
+    uint8_t *value;
+    uint16_t hl = get_hl(cpu);
+    bool is_hl = false;
+
+    switch (bbb)
+    {
+    case 0b000:
+        value = &cpu->b;
+        break;
+    case 0b001:
+        value = &cpu->c;
+        break;
+    case 0b010:
+        value = &cpu->d;
+        break;
+    case 0b011:
+        value = &cpu->e;
+        break;
+    case 0b100:
+        value = &cpu->h;
+        break;
+    case 0b101:
+        value = &cpu->l;
+        break;
+    case 0b110:
+        value = NULL;
+        is_hl = true;
+        break;
+    case 0b111:
+        value = &cpu->a;
+        break;
+    default:
+        break;
+    }
+
+    switch (aaaaa)
+    {
+    case 0b00000:
+        if (is_hl)
+        {
+            rlc_hl(cpu, hl);
+            break;
+        }
+        rlc(cpu, value);
+        break;
+    case 0b00001:
+        if (is_hl)
+        {
+            rrc_hl(cpu, hl);
+            break;
+        }
+        rrc(cpu, value);
+        break;
+    case 0b00010:
+        if (is_hl)
+        {
+            rl_hl(cpu, hl);
+            break;
+        }
+        rl(cpu, value);
+        break;
+    case 0b00011:
+        if (is_hl)
+        {
+            rr_hl(cpu, hl);
+            break;
+        }
+        rr(cpu, value);
+        break;
+    case 0b00100:
+        if (is_hl)
+        {
+            sla_hl(cpu, hl);
+            break;
+        }
+        sla(cpu, value);
+        break;
+    case 0b00101:
+        if (is_hl)
+        {
+            sra_hl(cpu, hl);
+            break;
+        }
+        sra(cpu, value);
+        break;
+    case 0b00110:
+        if (is_hl)
+        {
+            swap_hl(cpu, hl);
+            break;
+        }
+        swap(cpu, value);
+        break;
+    case 0b00111:
+        if (is_hl)
+        {
+            sra_hl(cpu, hl);
+            break;
+        }
+        sra(cpu, value);
+        break;
+    default:
+        panic_unimplemented("CB");
+    }
+
+    if (bbb == 0x06)
+    {
+        return 16;
+    }
+    return 8;
+}
+
 // NOP
 uint8_t op_00(void)
 {
@@ -1205,8 +1325,8 @@ uint8_t op_ca(CPU *cpu)
 // PREFIX CB
 uint8_t op_cb(CPU *cpu)
 {
-    panic_unimplemented("op_cb");
-    cpu->h = 0;
+    uint8_t cb_opcode = cpu_fetch_u8(cpu);
+    return decode_cb(cpu, cb_opcode);
 }
 
 // CALL Z, u16
@@ -1590,7 +1710,7 @@ uint8_t op_ff(CPU *cpu)
     return 16;
 }
 
-// RLC r8/(HL)
+// RLC r8
 void rlc(CPU *cpu, uint8_t *ptr)
 {
     bool c_flag = *ptr >> 7;
@@ -1602,7 +1722,7 @@ void rlc(CPU *cpu, uint8_t *ptr)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-// RRC r8/(HL)
+// RRC r8
 void rrc(CPU *cpu, uint8_t *ptr)
 {
     bool c_flag = *ptr & 0x01;
@@ -1614,7 +1734,7 @@ void rrc(CPU *cpu, uint8_t *ptr)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-// RL r8/(HL)
+// RL r8
 void rl(CPU *cpu, uint8_t *ptr)
 {
     uint8_t c_flag_old = cpu->flags & C_FLAG ? 1 : 0;
@@ -1627,7 +1747,7 @@ void rl(CPU *cpu, uint8_t *ptr)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-// RR r8/(HL)
+// RR r8
 void rr(CPU *cpu, uint8_t *ptr)
 {
     bool c_flag_old = cpu->flags & C_FLAG ? 1 : 0;
@@ -1640,7 +1760,7 @@ void rr(CPU *cpu, uint8_t *ptr)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-// SLA r8/(HL)
+// SLA r8
 void sla(CPU *cpu, uint8_t *ptr)
 {
     bool c_flag = *ptr >> 7;
@@ -1652,7 +1772,7 @@ void sla(CPU *cpu, uint8_t *ptr)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-// SRA r8/(HL)
+// SRA r8
 void sra(CPU *cpu, uint8_t *ptr)
 {
     bool c_flag = *ptr & 0x01;
@@ -1665,7 +1785,7 @@ void sra(CPU *cpu, uint8_t *ptr)
     set_flag(cpu, C_FLAG, c_flag);
 }
 
-// SWAP r8/(HL)
+// SWAP r8
 void swap(CPU *cpu, uint8_t *ptr)
 {
     uint16_t upper_byte = (*ptr & 0xF0) >> 4;
@@ -1677,13 +1797,128 @@ void swap(CPU *cpu, uint8_t *ptr)
     set_flag(cpu, C_FLAG, 0);
 }
 
-// SRL r8/(HL)
+// SRL r8
 void srl(CPU *cpu, uint8_t *ptr)
 {
     bool c_flag = *ptr & 0x01;
     *ptr = *ptr >> 1;
 
     set_flag(cpu, Z_FLAG, *ptr == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// RLC (HL)
+void rlc_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    bool c_flag = value >> 7;
+    value = (value << 1) | c_flag;
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// RRC (HL)
+void rrc_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    bool c_flag = value & 0x01;
+    value = (value >> 1) | (c_flag << 7);
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// RL (HL)
+void rl_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    uint8_t c_flag_old = cpu->flags & C_FLAG ? 1 : 0;
+    bool c_flag = value >> 7;
+    value = (value << 1) | c_flag_old;
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// RR (HL)
+void rr_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    bool c_flag_old = cpu->flags & C_FLAG ? 1 : 0;
+    bool c_flag = value & 0x01;
+    value = (value >> 1) | (c_flag_old << 7);
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// SLA (HL)
+void sla_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    bool c_flag = value >> 7;
+    value = value << 1;
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// SRA (HL)
+void sra_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    bool c_flag = value & 0x01;
+    uint8_t msb = value & (1 << 7);
+    value = value >> 1 | msb;
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, c_flag);
+}
+
+// SWAP (HL)
+void swap_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    uint16_t upper_byte = (value & 0xF0) >> 4;
+    value = (value << 4) | upper_byte;
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
+    set_flag(cpu, N_FLAG, 0);
+    set_flag(cpu, H_FLAG, 0);
+    set_flag(cpu, C_FLAG, 0);
+}
+
+// SRL (HL)
+void srl_hl(CPU *cpu, uint16_t hl)
+{
+    uint8_t value = read_mem(cpu->mmu, hl);
+    bool c_flag = value & 0x01;
+    value = value >> 1;
+    write_mem(cpu->mmu, hl, value);
+
+    set_flag(cpu, Z_FLAG, value == 0);
     set_flag(cpu, N_FLAG, 0);
     set_flag(cpu, H_FLAG, 0);
     set_flag(cpu, C_FLAG, c_flag);

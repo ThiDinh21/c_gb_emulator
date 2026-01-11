@@ -5,7 +5,8 @@
 #include "cpu.h"
 #include "alu.h"
 
-uint8_t decode(CPU *cpu, uint8_t op_size);
+uint8_t decode(CPU *cpu, uint8_t opcode);
+uint8_t decode_cb(CPU *cpu, uint8_t opcode);
 
 uint8_t op_00(void);
 uint8_t op_01(CPU *cpu);
@@ -137,5 +138,14 @@ void sla(CPU *cpu, uint8_t *ptr);
 void sra(CPU *cpu, uint8_t *ptr);
 void swap(CPU *cpu, uint8_t *ptr);
 void srl(CPU *cpu, uint8_t *ptr);
+
+void rlc_hl(CPU *cpu, uint16_t hl);
+void rrc_hl(CPU *cpu, uint16_t hl);
+void rl_hl(CPU *cpu, uint16_t hl);
+void rr_hl(CPU *cpu, uint16_t hl);
+void sla_hl(CPU *cpu, uint16_t hl);
+void sra_hl(CPU *cpu, uint16_t hl);
+void swap_hl(CPU *cpu, uint16_t hl);
+void srl_hl(CPU *cpu, uint16_t hl);
 
 #endif
