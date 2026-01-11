@@ -119,7 +119,7 @@ $(TARGET_TEST_MANUAL): $(BUILD_PATH)/%: $(TEST_PATH)/%.c $(SRC_EXCEPT_MAIN) $(TE
 		$(BUILD_PATH)/$*_Runner.c \
 		$(TEST_PATH)/unity.c \
 		$(SRC_EXCEPT_MAIN) \
-		-I$(SRC_PATH) -I$(TEST_PATH) $(LIBFLAGS)
+		-I$(SRC_PATH) -I$(TEST_PATH) $(LIBFLAGS) $(TESTFLAGS)
 	
 	# 3. Run
 	./$@
