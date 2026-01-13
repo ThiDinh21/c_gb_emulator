@@ -127,14 +127,14 @@ void set_flag(CPU *cpu, FlagRegister flag, uint8_t val)
 
 uint8_t cpu_fetch_u8(CPU *cpu)
 {
-    uint8_t val = read_mem(cpu->mmu, cpu->program_counter);
+    uint8_t val = read_mem(cpu, cpu->program_counter);
     cpu->program_counter++;
     return val;
 }
 
 uint16_t cpu_fetch_u16(CPU *cpu)
 {
-    uint16_t val = read_mem_u16(cpu->mmu, cpu->program_counter);
+    uint16_t val = read_mem_u16(cpu, cpu->program_counter);
     cpu->program_counter += 2;
     return val;
 }
@@ -143,12 +143,12 @@ void stack_push(CPU *cpu, uint16_t val)
 {
 
     cpu->sp -= 2;
-    write_mem_u16(cpu->mmu, cpu->sp, val);
+    write_mem_u16(cpu, cpu->sp, val);
 }
 
 uint16_t stack_pop(CPU *cpu)
 {
-    uint16_t res = read_mem_u16(cpu->mmu, cpu->sp);
+    uint16_t res = read_mem_u16(cpu, cpu->sp);
     cpu->sp += 2;
     return res;
 }
@@ -158,7 +158,7 @@ uint8_t interrupt_handling(CPU *cpu)
     // Check if interrupt master enable register is set
     if (!cpu->ime)
     {
-        if (read_mem(cpu->mmu, 0xFFFF) & read_mem(cpu->mmu, 0xFF0F) & 0b00011111)
+        if (read_mem(cpu, 0xFFFF) & read_mem(cpu, 0xFF0F) & 0b00011111)
         {
             // ignore HALT bug: https://gbdev.io/pandocs/halt.html
             cpu->halt = 0;
@@ -167,7 +167,7 @@ uint8_t interrupt_handling(CPU *cpu)
         return 0;
     }
 
-    if (!(read_mem(cpu->mmu, 0xFFFF) & read_mem(cpu->mmu, 0xFF0F) & 0b00011111))
+    if (!(read_mem(cpu, 0xFFFF) & read_mem(cpu, 0xFF0F) & 0b00011111))
     {
         return 0;
     }
@@ -176,11 +176,11 @@ uint8_t interrupt_handling(CPU *cpu)
 
     // read_mem everytime to avoid outdated data
     // If bit 0 is set -> VBLANK interrupt
-    if (read_mem(cpu->mmu, 0xFFFF) & read_mem(cpu->mmu, 0xFF0F) & 0x01)
+    if (read_mem(cpu, 0xFFFF) & read_mem(cpu, 0xFF0F) & 0x01)
     {
         stack_push(cpu, cpu->program_counter);
         cpu->program_counter = INTERRUPT_VBLANK;
-        write_mem(cpu->mmu, 0xFF0F, read_mem(cpu->mmu, 0xFF0F) & (~0x01));
+        write_mem(cpu, 0xFF0F, read_mem(cpu, 0xFF0F) & (~0x01));
         cpu->ime = 0;
         // (2 NOP + 2 PUSH + 1 SET) * 4 T-cycles
         return 20;
@@ -188,11 +188,11 @@ uint8_t interrupt_handling(CPU *cpu)
 
     // read_mem everytime to avoid outdated data
     // If bit 1 is set -> STAT interrupt
-    if (read_mem(cpu->mmu, 0xFFFF) & read_mem(cpu->mmu, 0xFF0F) & (1 << 1))
+    if (read_mem(cpu, 0xFFFF) & read_mem(cpu, 0xFF0F) & (1 << 1))
     {
         stack_push(cpu, cpu->program_counter);
         cpu->program_counter = INTERRUPT_STAT;
-        write_mem(cpu->mmu, 0xFF0F, read_mem(cpu->mmu, 0xFF0F) & (~(1 << 1)));
+        write_mem(cpu, 0xFF0F, read_mem(cpu, 0xFF0F) & (~(1 << 1)));
         cpu->ime = 0;
         // (2 NOP + 2 PUSH + 1 SET) * 4 T-cycles
         return 20;
@@ -200,11 +200,11 @@ uint8_t interrupt_handling(CPU *cpu)
 
     // read_mem everytime to avoid outdated data
     // If bit 2 is set -> TIMER interrupt
-    if (read_mem(cpu->mmu, 0xFFFF) & read_mem(cpu->mmu, 0xFF0F) & (1 << 2))
+    if (read_mem(cpu, 0xFFFF) & read_mem(cpu, 0xFF0F) & (1 << 2))
     {
         stack_push(cpu, cpu->program_counter);
         cpu->program_counter = INTERRUPT_TIMER;
-        write_mem(cpu->mmu, 0xFF0F, read_mem(cpu->mmu, 0xFF0F) & (~(1 << 2)));
+        write_mem(cpu, 0xFF0F, read_mem(cpu, 0xFF0F) & (~(1 << 2)));
         cpu->ime = 0;
         // (2 NOP + 2 PUSH + 1 SET) * 4 T-cycles
         return 20;
@@ -212,11 +212,11 @@ uint8_t interrupt_handling(CPU *cpu)
 
     // read_mem everytime to avoid outdated data
     // If bit 3 is set -> SERIAL interrupt
-    if (read_mem(cpu->mmu, 0xFFFF) & read_mem(cpu->mmu, 0xFF0F) & (1 << 3))
+    if (read_mem(cpu, 0xFFFF) & read_mem(cpu, 0xFF0F) & (1 << 3))
     {
         stack_push(cpu, cpu->program_counter);
         cpu->program_counter = INTERRUPT_SERIAL;
-        write_mem(cpu->mmu, 0xFF0F, read_mem(cpu->mmu, 0xFF0F) & (~(1 << 3)));
+        write_mem(cpu, 0xFF0F, read_mem(cpu, 0xFF0F) & (~(1 << 3)));
         cpu->ime = 0;
         // (2 NOP + 2 PUSH + 1 SET) * 4 T-cycles
         return 20;
@@ -224,11 +224,11 @@ uint8_t interrupt_handling(CPU *cpu)
 
     // read_mem everytime to avoid outdated data
     // If bit 4 is set -> JOYPAD interrupt
-    if (read_mem(cpu->mmu, 0xFFFF) & read_mem(cpu->mmu, 0xFF0F) & (1 << 4))
+    if (read_mem(cpu, 0xFFFF) & read_mem(cpu, 0xFF0F) & (1 << 4))
     {
         stack_push(cpu, cpu->program_counter);
         cpu->program_counter = INTERRUPT_JOYPAD;
-        write_mem(cpu->mmu, 0xFF0F, read_mem(cpu->mmu, 0xFF0F) & (~(1 << 4)));
+        write_mem(cpu, 0xFF0F, read_mem(cpu, 0xFF0F) & (~(1 << 4)));
         cpu->ime = 0;
         // (2 NOP + 2 PUSH + 1 SET) * 4 T-cycles
         return 20;

@@ -1,8 +1,10 @@
 #include "errors.h"
 #include "mmu.h"
 
-uint8_t read_mem(MMU *mmu, uint16_t addr)
+uint8_t read_mem(CPU *cpu, uint16_t addr)
 {
+    MMU *mmu = cpu->mmu;
+
     switch (addr)
     {
     case 0x0000 ... 0x7FFF:
@@ -20,7 +22,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
     case 0xE000 ... 0xFDFF:
         // Echo WRAM
         // Ninetendo said this is prohibited memory segment
-        return read_mem(mmu, addr - 0x2000);
+        return read_mem(cpu, addr - 0x2000);
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
         return read_oam(mmu, addr);
@@ -32,7 +34,7 @@ uint8_t read_mem(MMU *mmu, uint16_t addr)
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
     case 0xFF00 ... 0xFF7F:
         // Input
-        return read_io(mmu, addr);
+        return read_io(cpu, addr);
     case 0xFF80 ... 0xFFFE:
         // HRAM
         return read_hram(mmu, addr);
@@ -59,11 +61,11 @@ uint8_t read_rom(MMU *mmu, uint16_t addr)
     }
 }
 
-uint16_t read_mem_u16(MMU *mmu, uint16_t addr)
+uint16_t read_mem_u16(CPU *cpu, uint16_t addr)
 {
-    uint8_t lower_byte = read_mem(mmu, addr);
+    uint8_t lower_byte = read_mem(cpu, addr);
     __builtin_add_overflow(addr, 1, &addr);
-    uint8_t upper_byte = read_mem(mmu, addr);
+    uint8_t upper_byte = read_mem(cpu, addr);
     return upper_byte << 8 | lower_byte;
 }
 
@@ -90,9 +92,10 @@ uint8_t read_oam(MMU *mmu, uint16_t addr)
     return mmu->oam[addr - 0xFE00];
 }
 
-uint8_t read_io(MMU *mmu, uint16_t addr)
+uint8_t read_io(CPU *cpu, uint16_t addr)
 {
     // !TODO: tmp, not sure if need updating
+    MMU *mmu = cpu->mmu;
     return mmu->io[addr - 0xFF00];
 }
 
@@ -102,8 +105,9 @@ uint8_t read_hram(MMU *mmu, uint16_t addr)
     return mmu->hram[addr - 0xFF80];
 }
 
-void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
+void write_mem(CPU *cpu, uint16_t addr, uint8_t val)
 {
+    MMU *mmu = cpu->mmu;
     switch (addr)
     {
     case 0x0000 ... 0x7FFF:
@@ -125,7 +129,7 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
     case 0xE000 ... 0xFDFF:
         // Echo WRAM
         // Ninetendo said this is prohibited memory segment
-        write_mem(mmu, addr - 0x2000, val);
+        write_mem(cpu, addr - 0x2000, val);
         return;
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
@@ -140,7 +144,7 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
         panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
     case 0xFF00 ... 0xFF7F:
         // Input
-        write_io(mmu, addr, val);
+        write_io(cpu, addr, val);
         return;
     case 0xFF80 ... 0xFFFE:
         // HRAM
@@ -155,14 +159,14 @@ void write_mem(MMU *mmu, uint16_t addr, uint8_t val)
     }
 }
 
-void write_mem_u16(MMU *mmu, uint16_t addr, uint16_t val)
+void write_mem_u16(CPU *cpu, uint16_t addr, uint16_t val)
 {
     uint8_t lower_byte = val & 0x00FF;
     uint8_t upper_byte = val >> 8;
 
-    write_mem(mmu, addr, lower_byte);
+    write_mem(cpu, addr, lower_byte);
     __builtin_add_overflow(addr, 1, &addr);
-    write_mem(mmu, addr, upper_byte);
+    write_mem(cpu, addr, upper_byte);
 }
 
 void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
@@ -203,8 +207,9 @@ void write_oam(MMU *mmu, uint16_t addr, uint8_t val)
     mmu->oam[addr - 0xFE00] = val;
 }
 
-void write_io(MMU *mmu, uint16_t addr, uint8_t val)
+void write_io(CPU *cpu, uint16_t addr, uint8_t val)
 {
+    MMU *mmu = cpu->mmu;
     // !TODO: tmp, not sure if need updating
     mmu->io[addr - 0xFF00] = val;
 }

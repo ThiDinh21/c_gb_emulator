@@ -45,6 +45,6 @@ void timer_handling(CPU *cpu, uint8_t cycles)
 
 void send_timer_interrupt(CPU *cpu)
 {
-    uint8_t interrupt_flag = read_mem(cpu->mmu, 0xFF0F);
-    write_mem(cpu->mmu, 0xFF0F, interrupt_flag | (1 << 2));
+    uint8_t interrupt_flag = read_mem(cpu, 0xFF0F);
+    write_mem(cpu, 0xFF0F, interrupt_flag | (1 << 2));
 }
