@@ -17,7 +17,7 @@ uint8_t read_sram(MMU *mmu, uint16_t addr);
 
 uint8_t read_wram(MMU *mmu, uint16_t addr);
 
-uint8_t read_oam(MMU *mmu, uint16_t addr);
+uint8_t read_oam(PPU *ppu, uint16_t addr);
 
 uint8_t read_io(CPU *cpu, uint16_t addr);
 
@@ -35,7 +35,7 @@ void write_sram(MMU *mmu, uint16_t addr, uint8_t val);
 
 void write_wram(MMU *mmu, uint16_t addr, uint8_t val);
 
-void write_oam(MMU *mmu, uint16_t addr, uint8_t val);
+void write_oam(PPU *ppu, uint16_t addr, uint8_t val);
 
 void write_io(CPU *cpu, uint16_t addr, uint8_t val);
 

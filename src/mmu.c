@@ -1,9 +1,11 @@
 #include "errors.h"
 #include "mmu.h"
+#include "ppu.h"
 
 uint8_t read_mem(CPU *cpu, uint16_t addr)
 {
     MMU *mmu = cpu->mmu;
+    PPU *ppu = cpu->ppu;
 
     switch (addr)
     {
@@ -25,7 +27,7 @@ uint8_t read_mem(CPU *cpu, uint16_t addr)
         return read_mem(cpu, addr - 0x2000);
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
-        return read_oam(mmu, addr);
+        return read_oam(ppu, addr);
     case 0xFEA0 ... 0xFEFF:
 #ifdef UNITY_TEST_RUN
         return mmu->prohibit[addr - 0xFEA0];
@@ -86,10 +88,24 @@ uint8_t read_wram(MMU *mmu, uint16_t addr)
     return mmu->wram[addr - 0xC000];
 }
 
-uint8_t read_oam(MMU *mmu, uint16_t addr)
+uint8_t read_oam(PPU *ppu, uint16_t addr)
 {
-    // !TODO: tmp, not sure if need updating
-    return mmu->oam[addr - 0xFE00];
+    // 0xFE00 ... 0xFE9F
+    uint8_t sprite_index = (addr - 0xFE00) >> 2;
+    uint8_t byte_index = (addr - 0xFE00) & 0b11;
+
+    switch (byte_index)
+    {
+    case 0:
+        return ppu->sprites[sprite_index].y;
+    case 1:
+        return ppu->sprites[sprite_index].x;
+    case 2:
+        return ppu->sprites[sprite_index].index;
+    case 3:
+        return ppu->sprites[sprite_index].flags;
+    }
+    panic("read_oam fall through switch cases, should not happen", ERR_INVALID_MEMORY_ACCESS);
 }
 
 uint8_t read_io(CPU *cpu, uint16_t addr)
@@ -122,6 +138,8 @@ uint8_t read_hram(MMU *mmu, uint16_t addr)
 void write_mem(CPU *cpu, uint16_t addr, uint8_t val)
 {
     MMU *mmu = cpu->mmu;
+    PPU *ppu = cpu->ppu;
+
     switch (addr)
     {
     case 0x0000 ... 0x7FFF:
@@ -147,7 +165,7 @@ void write_mem(CPU *cpu, uint16_t addr, uint8_t val)
         return;
     case 0xFE00 ... 0xFE9F:
         // OAM (Object attribute memory)
-        write_oam(mmu, addr, val);
+        write_oam(ppu, addr, val);
         return;
     case 0xFEA0 ... 0xFEFF:
         // Prohibited memory segment
@@ -215,10 +233,27 @@ void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
     mmu->wram[addr - 0xC000] = val;
 }
 
-void write_oam(MMU *mmu, uint16_t addr, uint8_t val)
+void write_oam(PPU *ppu, uint16_t addr, uint8_t val)
 {
-    // !TODO: tmp, not sure if need updating
-    mmu->oam[addr - 0xFE00] = val;
+    // 0xFE00 ... 0xFE9F
+    uint8_t sprite_index = (addr - 0xFE00) >> 2;
+    uint8_t byte_index = (addr - 0xFE00) & 0b11;
+
+    switch (byte_index)
+    {
+    case 0:
+        ppu->sprites[sprite_index].y = val;
+        break;
+    case 1:
+        ppu->sprites[sprite_index].x = val;
+        break;
+    case 2:
+        ppu->sprites[sprite_index].index = val;
+        break;
+    case 3:
+        ppu->sprites[sprite_index].flags = val;
+        break;
+    }
 }
 
 void write_io(CPU *cpu, uint16_t addr, uint8_t val)
