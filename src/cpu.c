@@ -7,17 +7,20 @@ CPU *init_cpu(void)
     // !TODO: make this more robust, just temp right now
     MMU *mmu = (MMU *)calloc(1, sizeof(MMU));
     CPU *cpu = (CPU *)calloc(1, sizeof(CPU));
+    Timer *timer = init_timer();
 
     // after boot ROM finishes
     // https://gbdev.io/pandocs/Power_Up_Sequence.html
     cpu->program_counter = 0x0100;
     cpu->mmu = mmu;
+    cpu->timer = timer;
     return cpu;
 }
 
 void clean_up_cpu(CPU *cpu)
 {
     free(cpu->mmu);
+    clean_up_timer(cpu->timer);
     free(cpu);
 }
 

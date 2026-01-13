@@ -3,7 +3,9 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include "types.h"
 #include "mmu.h"
+#include "timer.h"
 
 /// https://gbdev.io/pandocs/CPU_Registers_and_Flags.html
 ///
@@ -25,18 +27,6 @@ typedef enum
     H_FLAG = 1 << 5,
     C_FLAG = 1 << 4,
 } FlagRegister;
-
-typedef struct
-{
-    uint16_t sp;
-    uint16_t program_counter;
-    uint8_t flags;
-    uint8_t ime;
-    uint8_t ime_pending; // Since EI delay enabling ime by 1 operation
-    uint8_t a, b, c, d, e, h, l;
-    uint8_t halt;
-    MMU *mmu;
-} CPU;
 
 typedef enum
 {
