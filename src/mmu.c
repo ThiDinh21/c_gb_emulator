@@ -96,7 +96,21 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
 {
     // !TODO: tmp, not sure if need updating
     MMU *mmu = cpu->mmu;
-    return mmu->io[addr - 0xFF00];
+    Timer *timer = cpu->timer;
+
+    switch (addr)
+    {
+    case 0xFF04: // Divider register
+        return timer->divider;
+    case 0xFF05: // Timer counter
+        return timer->timer_counter;
+    case 0xFF06: // Timer modulo
+        return timer->timer_modulo;
+    case 0xFF07: // Timer control
+        return timer->timer_control;
+    default:
+        return mmu->io[addr - 0xFF00];
+    }
 }
 
 uint8_t read_hram(MMU *mmu, uint16_t addr)
@@ -209,9 +223,27 @@ void write_oam(MMU *mmu, uint16_t addr, uint8_t val)
 
 void write_io(CPU *cpu, uint16_t addr, uint8_t val)
 {
-    MMU *mmu = cpu->mmu;
     // !TODO: tmp, not sure if need updating
-    mmu->io[addr - 0xFF00] = val;
+    MMU *mmu = cpu->mmu;
+    Timer *timer = cpu->timer;
+
+    switch (addr)
+    {
+    case 0xFF04: // Divider register
+        timer->divider = val;
+        break;
+    case 0xFF05: // Timer counter
+        timer->timer_counter = val;
+        break;
+    case 0xFF06: // Timer modulo
+        timer->timer_modulo = val;
+        break;
+    case 0xFF07: // Timer control
+        timer->timer_control = val;
+        break;
+    default:
+        mmu->io[addr - 0xFF00] = val;
+    }
 }
 
 void write_hram(MMU *mmu, uint16_t addr, uint8_t val)
