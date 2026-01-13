@@ -7,6 +7,7 @@ CPU *init_cpu(void)
     // !TODO: make this more robust, just temp right now
     MMU *mmu = (MMU *)calloc(1, sizeof(MMU));
     CPU *cpu = (CPU *)calloc(1, sizeof(CPU));
+    PPU *ppu = (PPU *)calloc(1, sizeof(PPU));
     Timer *timer = init_timer();
 
     // after boot ROM finishes
@@ -14,6 +15,7 @@ CPU *init_cpu(void)
     cpu->program_counter = 0x0100;
     cpu->mmu = mmu;
     cpu->timer = timer;
+    cpu->ppu = ppu;
     return cpu;
 }
 
@@ -21,12 +23,12 @@ void clean_up_cpu(CPU *cpu)
 {
     free(cpu->mmu);
     clean_up_timer(cpu->timer);
+    free(cpu->ppu);
     free(cpu);
 }
 
 uint8_t cpu_step(CPU *cpu)
 {
-
     // Fetch opcode
     uint8_t opcode = cpu_fetch_u8(cpu);
     uint8_t cycles = 0;

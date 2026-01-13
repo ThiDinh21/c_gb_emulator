@@ -33,6 +33,18 @@ typedef enum
     INTERRUPT_JOYPAD = 0x60,
 } Interrupt;
 
+// https://gbdev.io/pandocs/OAM.html
+// Byte 3:
+//                     7         6       5            4    3          2 1 0
+// Attributes	Priority	Y flip	X flip	DMG palette	Bank	CGB palette
+typedef struct
+{
+    uint8_t x;     // Byte 1
+    uint8_t y;     // Byte 0
+    uint8_t index; // Byte 2
+    uint8_t flags; // Byte 3
+} Sprite;          // OAM
+
 typedef struct
 {
     // uint8_t memory[65536];
@@ -61,6 +73,26 @@ typedef struct
     uint8_t timer_control;
 } Timer;
 
+// https://gbdev.io/pandocs/LCDC.html#ff40--lcdc-lcd-control
+// https://gbdev.io/pandocs/STAT.html
+// https://gbdev.io/pandocs/Scrolling.html#lcd-position-and-scrolling
+// https://gbdev.io/pandocs/Palettes.html
+typedef struct
+{
+    Sprite sprites[40];   // OAM
+    uint8_t lcd_control;  // 0xFF40
+    uint8_t lcd_y;        // 0xFF44
+    uint8_t lcd_y_cmp;    // 0xFF45
+    uint8_t lcd_status;   // 0xFF41
+    uint8_t bg_x;         // 0xFF42
+    uint8_t bg_y;         // 0xFF43
+    uint8_t win_x;        // 0xFF4B
+    uint8_t win_y;        // 0xFF4A
+    uint8_t bg_palette;   // 0xFF47
+    uint8_t obj0_palette; // 0xFF48
+    uint8_t obj1_palette; // 0xFF49
+} PPU;
+
 typedef struct
 {
     uint16_t sp;
@@ -72,6 +104,7 @@ typedef struct
     uint8_t halt;
     MMU *mmu;
     Timer *timer;
+    PPU *ppu;
 } CPU;
 
 typedef enum
