@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "timer.h"
+#include "mmu.h"
 
 Timer *init_timer(void)
 {

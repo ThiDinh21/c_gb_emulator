@@ -1,4 +1,5 @@
 #include "alu.h"
+#include "cpu.h"
 
 void alu_add(CPU *cpu, uint8_t val, bool carry)
 {

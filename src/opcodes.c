@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "opcodes.h"
+#include "cpu.h"
+#include "alu.h"
 #include "errors.h"
 
 uint8_t decode(CPU *cpu, uint8_t opcode)

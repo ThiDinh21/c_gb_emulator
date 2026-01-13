@@ -3,25 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-
-typedef struct
-{
-    // uint8_t memory[65536];
-    uint8_t rom_0[0x4000];
-    uint8_t rom_n[0x4000]; // !TODO: a switch bank, might need to make bigger
-    // size_t rom_index;
-    uint8_t vram[0x2000];
-    uint8_t sram[0x2000];
-    uint8_t wram[0x2000];
-    // size_t wram_index;
-    uint8_t oam[0xA0];
-#ifdef UNITY_TEST_RUN
-    uint8_t prohibit[0xA0];
-#endif
-    uint8_t io[0x80];
-    uint8_t hram[0x7F];
-    uint8_t interrupt_enable;
-} MMU;
+#include "types.h"
 
 uint8_t read_mem(MMU *mmu, uint16_t addr);
 

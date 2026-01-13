@@ -2,8 +2,7 @@
 #define OPCODES_H
 
 #include <stdint.h>
-#include "cpu.h"
-#include "alu.h"
+#include "types.h"
 
 uint8_t decode(CPU *cpu, uint8_t opcode);
 uint8_t decode_cb(CPU *cpu, uint8_t opcode);

@@ -2,7 +2,7 @@
 #define ALU_H
 
 #include <stdbool.h>
-#include "cpu.h"
+#include "types.h"
 
 void alu_add(CPU *cpu, uint8_t val, bool carry);
 
