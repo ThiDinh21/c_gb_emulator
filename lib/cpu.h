@@ -34,8 +34,18 @@ typedef struct
     uint8_t ime;
     uint8_t ime_pending; // Since EI delay enabling ime by 1 operation
     uint8_t a, b, c, d, e, h, l;
+    uint8_t halt;
     MMU *mmu;
 } CPU;
+
+typedef enum
+{
+    INTERRUPT_VBLANK = 0x40,
+    INTERRUPT_STAT = 0x48,
+    INTERRUPT_TIMER = 0x50,
+    INTERRUPT_SERIAL = 0x58,
+    INTERRUPT_JOYPAD = 0x60,
+} Interrupt;
 
 CPU *init_cpu(void);
 
@@ -64,5 +74,7 @@ uint16_t cpu_fetch_u16(CPU *cpu);
 
 void stack_push(CPU *cpu, uint16_t val);
 uint16_t stack_pop(CPU *cpu);
+
+uint8_t interrupt_handling(CPU *cpu);
 
 #endif
