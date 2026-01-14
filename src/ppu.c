@@ -78,6 +78,7 @@ void ppu_step(CPU *cpu, uint8_t cycles)
 void ppu_render_line(PPU *ppu)
 {
     panic_unimplemented("PPU render");
+    ppu->mode_3_length = 172;
 }
 
 // Get the length of mode 3 before rendering
@@ -87,14 +88,17 @@ uint8_t get_mode_3_length(PPU *ppu)
 {
     return 172; // Return the minimum value is probably good enough
     // TODO: impl exhaustive mode 3 length calculation
+    ppu->mode_3_length = 172;
 }
 
 void send_vblank_interrupt(CPU *cpu)
 {
     panic_unimplemented("send_vblank_int");
+    cpu->a = 0;
 }
 
 void send_stat_interrupt(CPU *cpu)
 {
     panic_unimplemented("STAT interrupt");
+    cpu->a = 0;
 }
