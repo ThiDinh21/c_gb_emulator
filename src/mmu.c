@@ -323,8 +323,20 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
     case 0xFF44: // LCD Y coord (read-only)
         break;
     case 0xFF45: // LCD Y compare
-        // TODO: check LY=LYC interrupt
         ppu->lcd_y_cmp = val;
+        if (ppu->lcd_y_cmp == ppu->lcd_y)
+        {
+            // Set compare flag and fire interrupt if allowed
+            ppu->lcd_status |= 0b1 << 2;
+            if (ppu->lcd_status & (0b1 << 6)) // Check if LY=LYC flag is enabled
+            {
+                send_stat_interrupt(cpu);
+            }
+        }
+        else
+        {
+            ppu->lcd_status &= ~(0b1 << 2);
+        }
         break;
     case 0xFF47: // BG palette
         ppu->bg_palette = val;
