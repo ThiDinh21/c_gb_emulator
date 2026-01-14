@@ -165,7 +165,6 @@ uint8_t interrupt_handling(CPU *cpu)
             // ignore HALT bug: https://gbdev.io/pandocs/halt.html
             cpu->halt = 0;
         }
-
         return 0;
     }
 

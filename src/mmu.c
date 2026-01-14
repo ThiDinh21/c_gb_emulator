@@ -115,9 +115,11 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
     // !TODO: tmp, not sure if need updating
     MMU *mmu = cpu->mmu;
     Timer *timer = cpu->timer;
+    PPU *ppu = cpu->ppu;
 
     switch (addr)
     {
+    // TIMER registers
     case 0xFF04: // Divider register
         return timer->divider;
     case 0xFF05: // Timer counter
@@ -126,6 +128,29 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
         return timer->timer_modulo;
     case 0xFF07: // Timer control
         return timer->timer_control;
+    // LCD registers
+    case 0xFF40: // LCD control
+        return ppu->lcd_control;
+    case 0xFF41: // STAT (LCD status)
+        return ppu->lcd_status;
+    case 0xFF42: // Background viewport Y
+        return ppu->bg_y;
+    case 0xFF43: // Background viewport X
+        return ppu->bg_x;
+    case 0xFF44: // LCD Y coord (read-only)
+        return ppu->lcd_y;
+    case 0xFF45: // LCD Y compare
+        return ppu->lcd_y_cmp;
+    case 0xFF47: // BG palette
+        return ppu->bg_palette;
+    case 0xFF48: // OBJ palette 0
+        return ppu->obj_palette_0;
+    case 0xFF49: // OBJ palette 1
+        return ppu->obj_palette_1;
+    case 0xFF4A: // Window pos Y
+        return ppu->win_y;
+    case 0xFF4B: // Window pos X
+        return ppu->win_x;
     default:
         return mmu->io[addr - 0xFF00];
     }
@@ -265,9 +290,11 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
     // !TODO: tmp, not sure if need updating
     MMU *mmu = cpu->mmu;
     Timer *timer = cpu->timer;
+    PPU *ppu = cpu->ppu;
 
     switch (addr)
     {
+    // TIMER registers
     case 0xFF04: // Divider register
         timer->divider = val;
         break;
@@ -279,6 +306,39 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
         break;
     case 0xFF07: // Timer control
         timer->timer_control = val;
+        break;
+    // LCD registers
+    case 0xFF40: // LCD control
+        ppu->lcd_control = val;
+        break;
+    case 0xFF41: // STAT (LCD status)
+        ppu->lcd_status = val;
+        break;
+    case 0xFF42: // Background viewport Y
+        ppu->bg_y = val;
+        break;
+    case 0xFF43: // Background viewport X
+        ppu->bg_x = val;
+        break;
+    case 0xFF44: // LCD Y coord (read-only)
+        break;
+    case 0xFF45: // LCD Y compare
+        ppu->lcd_y_cmp = val;
+        break;
+    case 0xFF47: // BG palette
+        ppu->bg_palette = val;
+        break;
+    case 0xFF48: // OBJ palette 0
+        ppu->obj_palette_0 = val;
+        break;
+    case 0xFF49: // OBJ palette 1
+        ppu->obj_palette_1 = val;
+        break;
+    case 0xFF4A: // Window pos Y
+        ppu->win_y = val;
+        break;
+    case 0xFF4B: // Window pos X
+        ppu->win_x = val;
         break;
     default:
         mmu->io[addr - 0xFF00] = val;
