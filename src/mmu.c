@@ -14,7 +14,7 @@ uint8_t read_mem(CPU *cpu, uint16_t addr)
         return read_rom(mmu, addr);
     case 0x8000 ... 0x9FFF:
         // VRAM
-        return read_vram(mmu, addr);
+        return read_vram(ppu, addr);
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
         return read_sram(mmu, addr);
@@ -71,10 +71,10 @@ uint16_t read_mem_u16(CPU *cpu, uint16_t addr)
     return upper_byte << 8 | lower_byte;
 }
 
-uint8_t read_vram(MMU *mmu, uint16_t addr)
+uint8_t read_vram(PPU *ppu, uint16_t addr)
 {
-    // !TODO: tmp, not sure if need updating
-    return mmu->vram[addr - 0x8000];
+    // TODO: Block vram access during some PPU modesc
+    return ppu->vram[addr - 0x8000];
 }
 
 uint8_t read_sram(MMU *mmu, uint16_t addr)
@@ -90,6 +90,8 @@ uint8_t read_wram(MMU *mmu, uint16_t addr)
 
 uint8_t read_oam(PPU *ppu, uint16_t addr)
 {
+    // !TODO: tmp, not sure if need updating
+
     // 0xFE00 ... 0xFE9F
     uint8_t sprite_index = (addr - 0xFE00) >> 2;
     uint8_t byte_index = (addr - 0xFE00) & 0b11;
@@ -148,7 +150,7 @@ void write_mem(CPU *cpu, uint16_t addr, uint8_t val)
         return;
     case 0x8000 ... 0x9FFF:
         // VRAM
-        write_vram(mmu, addr, val);
+        write_vram(ppu, addr, val);
         return;
     case 0xA000 ... 0xBFFF:
         // RAM (switchable)
@@ -216,10 +218,10 @@ void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
     }
 }
 
-void write_vram(MMU *mmu, uint16_t addr, uint8_t val)
+void write_vram(PPU *ppu, uint16_t addr, uint8_t val)
 {
     // !TODO: tmp, not sure if need updating
-    mmu->vram[addr - 0x8000] = val;
+    ppu->vram[addr - 0x8000] = val;
 }
 
 void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
@@ -235,6 +237,8 @@ void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
 
 void write_oam(PPU *ppu, uint16_t addr, uint8_t val)
 {
+    // !TODO: tmp, not sure if need updating
+
     // 0xFE00 ... 0xFE9F
     uint8_t sprite_index = (addr - 0xFE00) >> 2;
     uint8_t byte_index = (addr - 0xFE00) & 0b11;

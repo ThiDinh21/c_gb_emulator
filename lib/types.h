@@ -47,11 +47,8 @@ typedef struct
 
 typedef struct
 {
-    // uint8_t memory[65536];
     uint8_t rom_0[0x4000];
     uint8_t rom_n[0x4000]; // !TODO: a switch bank, might need to make bigger
-    // size_t rom_index;
-    uint8_t vram[0x2000];
     uint8_t sram[0x2000];
     uint8_t wram[0x2000];
     // size_t wram_index;
@@ -80,6 +77,7 @@ typedef struct
 typedef struct
 {
     Sprite sprites[40];   // OAM
+    uint8_t vram[0x2000]; // VRAM: 0x8000..0x9FFF
     uint8_t lcd_control;  // 0xFF40
     uint8_t lcd_y;        // 0xFF44
     uint8_t lcd_y_cmp;    // 0xFF45
