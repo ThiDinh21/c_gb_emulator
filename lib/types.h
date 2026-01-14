@@ -76,20 +76,21 @@ typedef struct
 // https://gbdev.io/pandocs/Palettes.html
 typedef struct
 {
-    Sprite sprites[40];     // OAM
-    uint8_t vram[0x2000];   // VRAM: 0x8000..0x9FFF
-    uint8_t lcd_control;    // 0xFF40
-    uint8_t lcd_y;          // 0xFF44
-    uint8_t lcd_y_cmp;      // 0xFF45
-    uint8_t lcd_status;     // 0xFF41
-    uint8_t bg_x;           // 0xFF42
-    uint8_t bg_y;           // 0xFF43
-    uint8_t win_x;          // 0xFF4B
-    uint8_t win_y;          // 0xFF4A
-    uint8_t bg_palette;     // 0xFF47
-    uint8_t obj_palette_0;  // 0xFF48
-    uint8_t obj_palette_1;  // 0xFF49
-    uint8_t internal_cycle; // Keep track of which cycle the PPU at to sync with CPU
+    Sprite sprites[40];      // OAM
+    uint8_t vram[0x2000];    // VRAM: 0x8000..0x9FFF
+    uint8_t lcd_control;     // 0xFF40
+    uint8_t lcd_y;           // 0xFF44
+    uint8_t lcd_y_cmp;       // 0xFF45
+    uint8_t lcd_status;      // 0xFF41
+    uint8_t bg_x;            // 0xFF42
+    uint8_t bg_y;            // 0xFF43
+    uint8_t win_x;           // 0xFF4B
+    uint8_t win_y;           // 0xFF4A
+    uint8_t bg_palette;      // 0xFF47
+    uint8_t obj_palette_0;   // 0xFF48
+    uint8_t obj_palette_1;   // 0xFF49
+    uint16_t internal_cycle; // Keep track of which cycle the PPU at to sync with CPU
+    uint8_t mode_3_length;   // Track how many cycles PPU needs during mode 3 for current line, altho keep at 172 is good enough
 } PPU;
 
 typedef struct
