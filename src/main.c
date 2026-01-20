@@ -3,6 +3,7 @@
 #include "mmu.h"
 #include "cpu.h"
 #include "alu.h"
+#include "logging.h"
 
 int main(void)
 {
@@ -19,8 +20,9 @@ int main(void)
     // invalid mem access
     // write_mem(cpu, 0xE010, 90);
 
-    printf("CARRY FLAG should not be 0: %d\n", 0b00010000 & C_FLAG);
-    printf("ZERO FLAG should be 0: %d\n", 0b01101111 & Z_FLAG);
+    // printf("CARRY FLAG should not be 0: %d\n", 0b00010000 & C_FLAG);
+    // printf("ZERO FLAG should be 0: %d\n", 0b01101111 & Z_FLAG);
+    LOG_DEBUG("CARRY FLAG should not be 0: %d\n", 0b00010000 & C_FLAG);
 
     // 16 bit regs test
     set_af(cpu, 0xABCD);
