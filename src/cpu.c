@@ -23,7 +23,7 @@ CPU *init_cpu(void)
     cpu->mmu = mmu;
     cpu->timer = timer;
     cpu->ppu = ppu;
-    if (load_rom(cpu, "./roms/test_roms/01-special.gb"))
+    if (load_rom(cpu, "./roms/test_roms/09-op r,r.gb"))
     {
         panic("Error", ERR_ROM_LOAD_FAILURE);
     }

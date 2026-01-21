@@ -200,7 +200,8 @@ uint8_t decode(CPU *cpu, uint8_t opcode)
     case 0xCA:
         return op_ca(cpu); // JP Z, a16
     case 0xCB:
-        return op_cb(cpu); // PREFIX CB
+        uint8_t cb_opcode = cpu_fetch_u8(cpu);
+        return decode_cb(cpu, cb_opcode); // PREFIX CB
     case 0xCC:
         return op_cc(cpu); // CALL Z, a16
     case 0xCD:
@@ -428,10 +429,10 @@ uint8_t decode_cb(CPU *cpu, uint8_t opcode)
     case 0b00111:
         if (is_hl)
         {
-            sra_hl(cpu, hl);
+            srl_hl(cpu, hl);
             break;
         }
-        sra(cpu, value);
+        srl(cpu, value);
         break;
     case 0b01000:
         bit(cpu, *value, 0);
@@ -1480,13 +1481,6 @@ uint8_t op_ca(CPU *cpu)
     {
         return 12;
     }
-}
-
-// PREFIX CB
-uint8_t op_cb(CPU *cpu)
-{
-    uint8_t cb_opcode = cpu_fetch_u8(cpu);
-    return decode_cb(cpu, cb_opcode);
 }
 
 // CALL Z, u16

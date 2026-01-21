@@ -85,7 +85,6 @@ uint8_t op_c7(CPU *cpu);
 uint8_t op_c8(CPU *cpu);
 uint8_t op_c9(CPU *cpu);
 uint8_t op_ca(CPU *cpu);
-uint8_t op_cb(CPU *cpu);
 uint8_t op_cc(CPU *cpu);
 uint8_t op_cd(CPU *cpu);
 uint8_t op_ce(CPU *cpu);
