@@ -1,6 +1,7 @@
 #include "errors.h"
 #include "mmu.h"
 #include "ppu.h"
+#include "logging.h"
 
 uint8_t read_mem(CPU *cpu, uint16_t addr)
 {
@@ -294,6 +295,16 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
 
     switch (addr)
     {
+    // Serial registers for Blargg's test ROMs
+    case 0xFF01:
+        mmu->sb = val;
+        break;
+    case 0xFF02:
+        if (val == 0x81) // 0x81 means "Transfer requested"
+        {
+            LOG_DEBUG("%c", mmu->sb);
+        }
+        break;
     // TIMER registers
     case 0xFF04: // Divider register
         timer->divider = val;

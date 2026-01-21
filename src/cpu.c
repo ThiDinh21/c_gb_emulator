@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include "cpu.h"
 #include "opcodes.h"
 #include "errors.h"
+#include "logging.h"
 
 CPU *init_cpu(void)
 {
@@ -13,9 +15,18 @@ CPU *init_cpu(void)
     // after boot ROM finishes
     // https://gbdev.io/pandocs/Power_Up_Sequence.html
     cpu->program_counter = 0x0100;
+    cpu->sp = 0xFFFE;
+    set_af(cpu, 0x01B0);
+    set_bc(cpu, 0x0013);
+    set_de(cpu, 0x00D8);
+    set_hl(cpu, 0x014D);
     cpu->mmu = mmu;
     cpu->timer = timer;
     cpu->ppu = ppu;
+    if (load_rom(cpu, "./roms/test_roms/01-special.gb"))
+    {
+        panic("Error", ERR_ROM_LOAD_FAILURE);
+    }
     return cpu;
 }
 
@@ -45,6 +56,27 @@ uint8_t cpu_step(CPU *cpu)
     cycles += interrupt_handling(cpu);
 
     return cycles;
+}
+
+int load_rom(CPU *cpu, const char *filename)
+{
+    FILE *rom_file = fopen(filename, "rb");
+    if (!rom_file)
+    {
+        LOG_ERROR("Unable to load ROM: %s", filename);
+        return 1;
+    }
+
+    // Get file size
+    fseek(rom_file, 0, SEEK_END);
+    long rom_size = ftell(rom_file);
+    rewind(rom_file);
+
+    size_t x = fread(cpu->mmu->rom_0, 1, rom_size, rom_file);
+    LOG_DEBUG("X: %zu", x);
+
+    fclose(rom_file);
+    return 0;
 }
 
 void cpu_stop(CPU *cpu)

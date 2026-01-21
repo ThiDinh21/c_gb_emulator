@@ -11,6 +11,8 @@ CPU *init_cpu(void);
 
 void clean_up_cpu(CPU *cpu);
 
+int load_rom(CPU *cpu, const char *filename);
+
 uint8_t cpu_step(CPU *cpu);
 void cpu_stop(CPU *cpu);
 void cpu_halt(CPU *cpu);

@@ -59,6 +59,7 @@ typedef struct
     uint8_t io[0x80];
     uint8_t hram[0x7F];
     uint8_t interrupt_enable;
+    uint8_t sb; // Serial transfer data (SB) register, for Blargg's test ROMs
 } MMU;
 
 typedef struct
