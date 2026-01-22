@@ -93,12 +93,12 @@ uint8_t get_mode_3_length(PPU *ppu)
 
 void send_vblank_interrupt(CPU *cpu)
 {
-    panic_unimplemented("send_vblank_int");
-    cpu->a = 0;
+    uint8_t interrupt_flag = read_mem(cpu, 0xFF0F);
+    write_mem(cpu, 0xFF0F, interrupt_flag | 0b1);
 }
 
 void send_stat_interrupt(CPU *cpu)
 {
-    panic_unimplemented("STAT interrupt");
-    cpu->a = 0;
+    uint8_t interrupt_flag = read_mem(cpu, 0xFF0F);
+    write_mem(cpu, 0xFF0F, interrupt_flag | (1 << 1));
 }
