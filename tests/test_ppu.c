@@ -5,13 +5,11 @@
 
 CPU *cpu;
 PPU *ppu;
-MMU *mmu;
 
 void setUp(void)
 {
     cpu = init_cpu();
     ppu = cpu->ppu;
-    mmu = cpu->mmu;
 
     // Default: LCD Enabled, Mode 2 (Start of line)
     ppu->lcd_control = 0x80;
@@ -55,6 +53,9 @@ void test_ppu_enters_vblank_after_144_lines(void)
     TEST_ASSERT_EQUAL_UINT8(1, ppu->lcd_status & 0b11);
 
     // TODO: Check Interrupt Flag 0xFF0f bit 0 was set
+
+    // VBlank Interrupt should have fired
+    TEST_ASSERT_BIT_HIGH(0, read_mem(cpu, 0xFF0F));
 }
 
 void test_ppu_stat_interrupt_mode_2(void)
@@ -68,6 +69,5 @@ void test_ppu_stat_interrupt_mode_2(void)
     ppu_step(cpu, 4);
 
     // STAT Interrupt should have fired
-    // TEST_ASSERT_BIT_HIGH(1, read_mem(&mmu, 0xFF0F));
-    // TODO: Check Interrupt Flag 0xFF0F bit 1 was set
+    TEST_ASSERT_BIT_HIGH(1, read_mem(cpu, 0xFF0F));
 }

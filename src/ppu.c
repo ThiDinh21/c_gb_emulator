@@ -1,6 +1,7 @@
 #include "ppu.h"
 #include "mmu.h"
 #include "errors.h"
+#include "logging.h"
 
 // https://gbdev.io/pandocs/Rendering.html
 void ppu_step(CPU *cpu, uint8_t cycles)
@@ -98,7 +99,7 @@ void ppu_render_line(PPU *ppu)
     uint16_t window_tile_map = (lcdc_6 ? 0x9C00 : 0x9800) - 0x8000;
     uint8_t lcdc_4 = ppu->lcd_control & (1 << 4) ? 1 : 0;        // Addressing mode of tile data
     uint8_t window_enable = ppu->lcd_control & (1 << 5) ? 1 : 0; // LCDC 5
-    uint8_t obj_enable = ppu->lcd_control & (1 << 1) ? 1 : 0;    // LCDC 1
+    // uint8_t obj_enable = ppu->lcd_control & (1 << 1) ? 1 : 0;    // LCDC 1
 
     // Calc tile's row
     // Add pixels (ly + scy) then divide by 8 to get tile row
@@ -139,6 +140,9 @@ void ppu_render_line(PPU *ppu)
     {
         ppu->window_internal_line++;
     }
+
+    panic_unimplemented("Yo mama");
+    LOG_DEBUG("Hello %p", line_pixels);
 
     // Step 2: Get tile data low
     // Step 3: Get tile data high
