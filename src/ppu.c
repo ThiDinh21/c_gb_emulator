@@ -1,4 +1,5 @@
 #include "ppu.h"
+#include "mmu.h"
 #include "errors.h"
 
 // https://gbdev.io/pandocs/Rendering.html
