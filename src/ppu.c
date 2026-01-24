@@ -15,6 +15,10 @@ void ppu_step(CPU *cpu, uint8_t cycles)
     {
         ppu->lcd_y++;
         ppu->lcd_y %= 154; // Line is from 0..153
+        if (ppu->lcd_y == 0)
+        {
+            ppu->window_internal_line = 0;
+        }
         ppu->mode_3_length = 0;
         // Update status reg bit 2
         if (ppu->lcd_y == ppu->lcd_y_cmp)
