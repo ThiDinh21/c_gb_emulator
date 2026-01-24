@@ -95,6 +95,7 @@ void ppu_render_line(PPU *ppu)
     // & 255 for the vertical wrap-around
     uint8_t abs_pixel_y = ppu->lcd_y + ppu->bg_y;
     uint8_t tile_y = abs_pixel_y / 8;
+    uint8_t bg_tile_index;
 
     // Loop through each pixel of a row
     for (int i = 0; i < 160; i++)
@@ -103,8 +104,11 @@ void ppu_render_line(PPU *ppu)
         uint8_t abs_pixel_x = i + ppu->bg_x;
         uint8_t tile_x = abs_pixel_x / 8; // From 0..31
         // Calculate Address: base + (row * 32) + col
-        uint16_t tile_index = ppu->vram[bg_tile_map + tile_y * 32 + tile_x];
-        uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, tile_index, lcdc_4, abs_pixel_x, abs_pixel_y);
+        if (i == 0 || abs_pixel_x % 8 == 0)
+        {
+            bg_tile_index = ppu->vram[bg_tile_map + tile_y * 32 + tile_x];
+        }
+        uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, bg_tile_index, lcdc_4, abs_pixel_x, abs_pixel_y);
         line_pixels[i] = get_color_from_palette(ppu->bg_palette, pixel_color_id);
     }
 
