@@ -91,7 +91,9 @@ typedef struct
     uint8_t obj_palette_0;   // 0xFF48
     uint8_t obj_palette_1;   // 0xFF49
     uint16_t internal_cycle; // Keep track of which cycle the PPU at to sync with CPU
-    uint8_t mode_3_length;   // Track how many cycles PPU needs during mode 3 for current line, altho keep at 172 is good enough
+    // TODO: reset each frame
+    uint8_t window_internal_line; // Keep track of how much has the window been rendered, reset each frame
+    uint8_t mode_3_length;        // Track how many cycles PPU needs during mode 3 for current line, altho keep at 172 is good enough
 } PPU;
 
 typedef struct
