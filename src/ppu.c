@@ -1,3 +1,4 @@
+#include <string.h>
 #include "ppu.h"
 #include "mmu.h"
 #include "errors.h"
@@ -83,8 +84,6 @@ void ppu_step(CPU *cpu, uint8_t cycles)
 
 void ppu_render_line(PPU *ppu)
 {
-    panic_unimplemented("PPU render");
-
     // Screen is 160 x 144, each line is 32 tiles, each tiles is 8x8 pixels
     uint8_t line_pixels[160] = {0};
 
@@ -141,8 +140,7 @@ void ppu_render_line(PPU *ppu)
         ppu->window_internal_line++;
     }
 
-    panic_unimplemented("Yo mama");
-    LOG_DEBUG("Hello %p", line_pixels);
+    memcpy(ppu->test_line_buffer, line_pixels, 160);
 
     // Step 2: Get tile data low
     // Step 3: Get tile data high

@@ -2,6 +2,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "mmu.h"
+#include "logging.h"
 
 CPU *cpu;
 PPU *ppu;
@@ -14,6 +15,23 @@ void setUp(void)
     // Default: LCD Enabled, Mode 2 (Start of line)
     ppu->lcd_control = 0x80;
     ppu->lcd_status = 0;
+
+    // Setup a specific tile pattern in VRAM
+    // Tile 0 Data (Address 0x8000 - 0x800F) -> All Zeros
+    for (int i = 0; i < 16; i++)
+        write_mem(cpu, 0x8000 + i, 0x00);
+    // Tile 1 Data (Address 0x8010 - 0x801F) -> All Ones (0xFF)
+    // 2 bits per pixel. 0xFF low byte + 0xFF high byte = Color 3.
+    for (int i = 0; i < 16; i++)
+        write_mem(cpu, 0x8010 + i, 0xFF);
+
+    // Fill Background Map (0x9800) with Tile 0
+    // Fill Window Map (0x9C00) with Tile 1
+    for (int i = 0; i < 1024; i++)
+    {
+        write_mem(cpu, 0x9800 + i, 0x00); // BG uses Tile 0 (White)
+        write_mem(cpu, 0x9C00 + i, 0x01); // Win uses Tile 1 (Black)
+    }
 }
 
 void tearDown(void)
@@ -52,8 +70,6 @@ void test_ppu_enters_vblank_after_144_lines(void)
     // Mode (Bits 0-1) should be 1 (V-Blank)
     TEST_ASSERT_EQUAL_UINT8(1, ppu->lcd_status & 0b11);
 
-    // TODO: Check Interrupt Flag 0xFF0f bit 0 was set
-
     // VBlank Interrupt should have fired
     TEST_ASSERT_BIT_HIGH(0, read_mem(cpu, 0xFF0F));
 }
@@ -70,4 +86,50 @@ void test_ppu_stat_interrupt_mode_2(void)
 
     // STAT Interrupt should have fired
     TEST_ASSERT_BIT_HIGH(1, read_mem(cpu, 0xFF0F));
+}
+
+/* * TEST: Window Mid-Scanline Cutoff
+ * Scenario:
+ * - Background is White (Tile 0)
+ * - Window is Black (Tile 1)
+ * - Window is enabled at X = 40 (WX = 47)
+ * * Expected Result:
+ * - Pixels 0 to 39: WHITE (Color 0)
+ * - Pixels 40 to 159: BLACK (Color 3)
+ */
+void test_window_trigger_mid_scanline(void)
+{
+    // 1. Configure Registers
+    // LCDC: LCD On (Bit 7), Win Map=9C00 (Bit 6), Win On (Bit 5), BG Map=9800 (Bit 3), BG On (Bit 0)
+    // Binary: 1111 0001 -> 0xF1
+    ppu->lcd_control = 0xF1;
+    ppu->lcd_y = 0;         // Current Line 0
+    ppu->win_y = 0;         // Window starts at Line 0
+    ppu->win_x = 40 + 7;    // Window starts at Pixel 40 (WX is X+7)
+    ppu->bg_x = 0;          // No BG Scroll
+    ppu->bg_palette = 0xE4; // Palette: 3=Black, 0=White
+
+    // 2. Run exactly one scanline: 456 dots (cycles)
+    for (int i = 0; i < 456; i++)
+    {
+        ppu_step(cpu, 1);
+    }
+
+    // 3. Verify Pixels before the window (0-39)
+    // Should be Color 0 (White) from Background
+    char message[64];
+    for (int x = 0; x < 40; x++)
+    {
+        sprintf(message, "BG Pixel at X=%d should be White (0)", x);
+        // Assuming your output buffer stores the resolved palette color (0-3)
+        TEST_ASSERT_EQUAL_INT_MESSAGE(0, ppu->test_line_buffer[x], message);
+    }
+
+    // 4. Verify Pixels inside the window (40-159)
+    // Should be Color 3 (Black) from Window
+    for (int x = 40; x < 160; x++)
+    {
+        sprintf(message, "Window Pixel at X=%d should be Black (3)", x);
+        TEST_ASSERT_EQUAL_INT_MESSAGE(3, ppu->test_line_buffer[x], message);
+    }
 }
