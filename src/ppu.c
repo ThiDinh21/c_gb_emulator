@@ -179,9 +179,6 @@ uint8_t get_color_from_palette(uint8_t palette_reg, uint8_t color_id)
     return (palette_reg >> (color_id * 2)) & 0b11;
 }
 
-// Get the length of mode 3 before rendering
-// Formula = 160 (line length) + 12 (2 tile fetchers) + penalty
-// with penalty = SCX % 8 + 6 () + penalty_for_each_obj
 uint8_t get_mode_3_length(PPU *ppu)
 {
     return 172; // Return the minimum value is probably good enough
