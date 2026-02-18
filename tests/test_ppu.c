@@ -133,3 +133,81 @@ void test_window_trigger_mid_scanline(void)
         TEST_ASSERT_EQUAL_INT_MESSAGE(3, ppu->test_line_buffer[x], message);
     }
 }
+
+/* OAM SCAN TESTS */
+
+// A sprite at Y=16 (screen Y=0) with height=8 should be visible on scanline 0
+void test_oam_scan_finds_sprite_on_current_line(void)
+{
+    ppu->lcd_control = 0x80; // LCD on, 8x8 sprites
+    ppu->lcd_y = 0;
+
+    // Place sprite 0 at screen Y=0 (raw Y = 0 + 16 = 16)
+    write_mem(cpu, 0xFE00, 16); // Y
+    write_mem(cpu, 0xFE01, 8);  // X
+    write_mem(cpu, 0xFE02, 0);  // tile index
+    write_mem(cpu, 0xFE03, 0);  // flags
+
+    uint8_t indices[10];
+    uint8_t count = oam_scan(ppu, indices);
+
+    TEST_ASSERT_EQUAL_UINT8(1, count);
+    TEST_ASSERT_EQUAL_UINT8(0, indices[0]);
+}
+
+// A sprite above the scanline should not be found
+void test_oam_scan_ignores_sprite_above_line(void)
+{
+    ppu->lcd_control = 0x80;
+    ppu->lcd_y = 10;
+
+    // Sprite at screen Y=0..7, scanline is 10 -> not visible
+    write_mem(cpu, 0xFE00, 16); // raw Y = 16 -> screen Y = 0
+    write_mem(cpu, 0xFE01, 8);
+    write_mem(cpu, 0xFE02, 0);
+    write_mem(cpu, 0xFE03, 0);
+
+    uint8_t indices[10];
+    uint8_t count = oam_scan(ppu, indices);
+
+    TEST_ASSERT_EQUAL_UINT8(0, count);
+}
+
+// Only the first 10 sprites should be returned even if more are visible
+void test_oam_scan_caps_at_10_sprites(void)
+{
+    ppu->lcd_control = 0x80;
+    ppu->lcd_y = 0;
+
+    // Place 12 sprites all at screen Y=0 (raw Y=16)
+    for (int i = 0; i < 12; i++)
+    {
+        write_mem(cpu, 0xFE00 + i * 4, 16); // Y
+        write_mem(cpu, 0xFE01 + i * 4, 8);  // X
+        write_mem(cpu, 0xFE02 + i * 4, 0);  // tile
+        write_mem(cpu, 0xFE03 + i * 4, 0);  // flags
+    }
+
+    uint8_t indices[10];
+    uint8_t count = oam_scan(ppu, indices);
+
+    TEST_ASSERT_EQUAL_UINT8(10, count);
+}
+
+// In 8x16 mode, sprite height is 16 so it covers two extra scanlines
+void test_oam_scan_8x16_extended_height(void)
+{
+    ppu->lcd_control = 0x80 | (1 << 2); // LCD on + 8x16
+    ppu->lcd_y = 12;
+
+    // Sprite at screen Y=0 (raw Y=16) — in 8x16 it covers lines 0..15
+    write_mem(cpu, 0xFE00, 16);
+    write_mem(cpu, 0xFE01, 8);
+    write_mem(cpu, 0xFE02, 0);
+    write_mem(cpu, 0xFE03, 0);
+
+    uint8_t indices[10];
+    uint8_t count = oam_scan(ppu, indices);
+
+    TEST_ASSERT_EQUAL_UINT8(1, count);
+}

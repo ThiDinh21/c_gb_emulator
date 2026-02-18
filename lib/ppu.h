@@ -42,6 +42,14 @@ uint8_t get_color_from_palette(uint8_t palette_reg, uint8_t color_id);
 uint8_t get_mode_3_length(PPU *ppu);
 
 /*
+ * Scans the OAM for sprites visible on the current scanline (ppu->lcd_y).
+ * Stores up to 10 matching sprite indices (by OAM order) into out_indices.
+ * Returns the number of sprites found.
+ * https://gbdev.io/pandocs/OAM.html
+ */
+uint8_t oam_scan(PPU *ppu, uint8_t out_indices[10]);
+
+/*
  * Sets the VBlank interrupt flag (Bit 0) in the CPU's Interrupt Flag (IF) register.
  * https://gbdev.io/pandocs/Interrupts.html#ff0f--if-interrupt-flag
  */

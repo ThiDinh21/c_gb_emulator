@@ -89,6 +89,10 @@ void ppu_render_line(PPU *ppu)
 
     // FIFO Pixel fetcher (5 steps)
     // Step 1: Get tile
+    // Step 2: Get tile data low
+    // Step 3: Get tile data high
+    // Step 4: Sleep (ignored)
+    // Step 5: Push
     // Always use tilemap 0x9800-0x9BFF or use 0x9C00-0x9FFF when:
     // - LCDC.3 is enabled and the X coordinate of the current scanline is not inside the window.
     // - LCDC.6 is enabled and the X coordinate of the current scanline is inside the window.
@@ -140,12 +144,12 @@ void ppu_render_line(PPU *ppu)
         ppu->window_internal_line++;
     }
 
-    memcpy(ppu->test_line_buffer, line_pixels, 160);
+    /* Layer 1: Objects */
+    uint8_t visible_sprites[10];
+    uint8_t sprite_count = oam_scan(ppu, visible_sprites);
+    (void)sprite_count; // sprites rendering unimplemented
 
-    // Step 2: Get tile data low
-    // Step 3: Get tile data high
-    // Step 4: Sleep (ignored)
-    // Step 5: Push
+    memcpy(ppu->test_line_buffer, line_pixels, 160);
 }
 
 uint8_t tile_index_to_pixel_bg_win(PPU *ppu, uint8_t tile_index, uint8_t lcdc4, uint8_t abs_x, uint8_t abs_y)
@@ -184,6 +188,26 @@ uint8_t get_mode_3_length(PPU *ppu)
     return 172; // Return the minimum value is probably good enough
     // TODO: impl exhaustive mode 3 length calculation
     ppu->mode_3_length = 172;
+}
+
+uint8_t oam_scan(PPU *ppu, uint8_t out_indices[10])
+{
+    uint8_t height = (ppu->lcd_control & (0b1 << 2)) ? 16 : 8;
+    uint8_t count = 0;
+
+    for (uint8_t i = 0; i < 40 && count < 10; i++)
+    {
+        Sprite *s = &ppu->sprites[i];
+        // Sprite Y is stored as screen_y + 16, so visible if:
+        // s->y <= lcd_y + 16 < s->y + height
+        uint16_t ly16 = (uint16_t)ppu->lcd_y + 16;
+        if (ly16 >= s->y && ly16 < (uint16_t)s->y + height)
+        {
+            out_indices[count++] = i;
+        }
+    }
+
+    return count;
 }
 
 void send_vblank_interrupt(CPU *cpu)
