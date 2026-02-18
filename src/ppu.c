@@ -86,6 +86,7 @@ void ppu_render_line(PPU *ppu)
 {
     // Screen is 160 x 144, each line is 32 tiles, each tiles is 8x8 pixels
     uint8_t line_pixels[160] = {0};
+    uint8_t bg_raw[160] = {0}; // Raw 2-bit color IDs (before palette) for sprite priority
 
     // FIFO Pixel fetcher (5 steps)
     // Step 1: Get tile
@@ -123,6 +124,7 @@ void ppu_render_line(PPU *ppu)
             uint8_t tile_x = win_x / 8;
             window_tile_index = ppu->vram[window_tile_map + (ppu->window_internal_line / 8) * 32 + tile_x];
             uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, window_tile_index, lcdc_4, win_x, ppu->window_internal_line);
+            bg_raw[i] = pixel_color_id;
             line_pixels[i] = get_color_from_palette(ppu->bg_palette, pixel_color_id);
             is_window_rendered = 1;
             continue;
@@ -136,6 +138,7 @@ void ppu_render_line(PPU *ppu)
         bg_tile_index = ppu->vram[bg_tile_map + tile_y * 32 + tile_x];
 
         uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, bg_tile_index, lcdc_4, abs_pixel_x, abs_pixel_y);
+        bg_raw[i] = pixel_color_id;
         line_pixels[i] = get_color_from_palette(ppu->bg_palette, pixel_color_id);
     }
 
@@ -147,7 +150,8 @@ void ppu_render_line(PPU *ppu)
     /* Layer 1: Objects */
     uint8_t visible_sprites[10];
     uint8_t sprite_count = oam_scan(ppu, visible_sprites);
-    (void)sprite_count; // sprites rendering unimplemented
+    (void)sprite_count;  // sprites rendering unimplemented
+    (void)bg_raw;        // used in sprite priority (Step 3)
 
     memcpy(ppu->test_line_buffer, line_pixels, 160);
 }
