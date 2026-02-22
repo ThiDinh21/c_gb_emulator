@@ -198,9 +198,10 @@ uint8_t get_color_from_palette(uint8_t palette_reg, uint8_t color_id)
 
 uint8_t get_mode_3_length(PPU *ppu)
 {
-    return 172; // Return the minimum value is probably good enough
+    (void)ppu;
     // TODO: impl exhaustive mode 3 length calculation
-    ppu->mode_3_length = 172;
+    // Formula: 172 (base) + SCX%8 + penalty per visible sprite
+    return 172; // minimum value; good enough for now
 }
 
 void render_sprites(PPU *ppu, uint8_t *line_pixels, const uint8_t *bg_raw,
