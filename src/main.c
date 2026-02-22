@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include "mmu.h"
 #include "cpu.h"
-#include "alu.h"
+#include "ppu.h"
+#include "timer.h"
 #include "logging.h"
 
 int main(void)
@@ -11,7 +12,9 @@ int main(void)
 
     while (true)
     {
-        cpu_step(cpu);
+        uint8_t cycles = cpu_step(cpu);
+        ppu_step(cpu, cycles);
+        timer_handling(cpu, cycles);
     }
 
     clean_up_cpu(cpu);
