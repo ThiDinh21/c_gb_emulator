@@ -376,3 +376,50 @@ void test_sprite_disabled_by_lcdc(void)
     for (int x = 8; x < 16; x++)
         TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[x]);
 }
+
+/* LCDC BIT 0 (BG/WIN ENABLE) TESTS */
+
+// When LCDC bit 0 is clear, the whole line is color 0 regardless of BG tiles
+void test_bg_disabled_line_is_blank(void)
+{
+    // Fill BG map with tile 1 (all color 3) — would normally show shade 3
+    for (int i = 0; i < 1024; i++)
+        write_mem(cpu, 0x9800 + i, 0x01);
+
+    ppu->lcd_control = 0x80; // LCD on, BG OFF (bit 0 = 0)
+    ppu->lcd_y = 0;
+    ppu->bg_palette = 0xE4;
+
+    run_scanline(cpu);
+
+    // All pixels must be 0 (blank) since BG is disabled
+    for (int x = 0; x < 160; x++)
+        TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[x]);
+}
+
+// When LCDC bit 0 is clear, sprites still render over the blank line
+void test_sprite_renders_over_blank_bg(void)
+{
+    // BG would show tile 1 (color 3) but BG is disabled
+    for (int i = 0; i < 1024; i++)
+        write_mem(cpu, 0x9800 + i, 0x01);
+
+    ppu->lcd_control = 0x82; // LCD on, OBJ on, BG OFF
+    ppu->lcd_y = 0;
+    ppu->bg_palette    = 0xE4;
+    ppu->obj_palette_0 = 0xE4;
+
+    // Sprite at screen (8, 0), tile 1 (all color 3)
+    write_mem(cpu, 0xFE00, 16);
+    write_mem(cpu, 0xFE01, 16);
+    write_mem(cpu, 0xFE02, 1);
+    write_mem(cpu, 0xFE03, 0);
+
+    run_scanline(cpu);
+
+    // Sprite pixels (8-15) should be shade 3
+    for (int x = 8; x < 16; x++)
+        TEST_ASSERT_EQUAL_UINT8(3, ppu->test_line_buffer[x]);
+    // Rest is blank (shade 0)
+    TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[7]);
+}

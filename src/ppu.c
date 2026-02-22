@@ -97,54 +97,51 @@ void ppu_render_line(PPU *ppu)
     // Always use tilemap 0x9800-0x9BFF or use 0x9C00-0x9FFF when:
     // - LCDC.3 is enabled and the X coordinate of the current scanline is not inside the window.
     // - LCDC.6 is enabled and the X coordinate of the current scanline is inside the window.
+    uint8_t bg_win_enable = ppu->lcd_control & (1 << 0); // LCDC bit 0: BG+Window enable
     uint8_t lcdc_3 = ppu->lcd_control & (1 << 3) ? 1 : 0;
     uint8_t lcdc_6 = ppu->lcd_control & (1 << 6) ? 1 : 0;
     uint16_t bg_tile_map = (lcdc_3 ? 0x9C00 : 0x9800) - 0x8000;
     uint16_t window_tile_map = (lcdc_6 ? 0x9C00 : 0x9800) - 0x8000;
     uint8_t lcdc_4 = ppu->lcd_control & (1 << 4) ? 1 : 0;        // Addressing mode of tile data
     uint8_t window_enable = ppu->lcd_control & (1 << 5) ? 1 : 0; // LCDC 5
-    // uint8_t obj_enable = ppu->lcd_control & (1 << 1) ? 1 : 0;    // LCDC 1
 
-    // Calc tile's row
-    // Add pixels (ly + scy) then divide by 8 to get tile row
-    // & 255 for the vertical wrap-around
-    uint8_t abs_pixel_y = ppu->lcd_y + ppu->bg_y;
-    uint8_t tile_y = abs_pixel_y / 8;
-    uint8_t bg_tile_index, window_tile_index;
-    uint8_t is_window_rendered = 0;
-
-    // Loop through each pixel of a row
-    for (int i = 0; i < 160; i++)
+    if (bg_win_enable)
     {
-        /* Layer 2: Window */
-        if (window_enable && i + 7 >= ppu->win_x && ppu->lcd_y >= ppu->win_y) // E.g. if wx = 7 and wy = 0 -> Window will cover whole bg. The Window starts at WY and continues down to the bottom of the screen.
+        // Calc tile's row
+        // Add pixels (ly + scy) then divide by 8 to get tile row
+        // & 255 for the vertical wrap-around
+        uint8_t abs_pixel_y = ppu->lcd_y + ppu->bg_y;
+        uint8_t tile_y = abs_pixel_y / 8;
+        uint8_t bg_tile_index, window_tile_index;
+        uint8_t is_window_rendered = 0;
+
+        // Loop through each pixel of a row
+        for (int i = 0; i < 160; i++)
         {
-            // Calculate Address: base + (row * 32) + col
-            uint8_t win_x = ppu->win_x < 7 ? i : i - (ppu->win_x - 7);
-            uint8_t tile_x = win_x / 8;
-            window_tile_index = ppu->vram[window_tile_map + (ppu->window_internal_line / 8) * 32 + tile_x];
-            uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, window_tile_index, lcdc_4, win_x, ppu->window_internal_line);
+            /* Layer 2: Window */
+            if (window_enable && i + 7 >= ppu->win_x && ppu->lcd_y >= ppu->win_y)
+            {
+                uint8_t win_x = ppu->win_x < 7 ? i : i - (ppu->win_x - 7);
+                uint8_t tile_x = win_x / 8;
+                window_tile_index = ppu->vram[window_tile_map + (ppu->window_internal_line / 8) * 32 + tile_x];
+                uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, window_tile_index, lcdc_4, win_x, ppu->window_internal_line);
+                bg_raw[i] = pixel_color_id;
+                line_pixels[i] = get_color_from_palette(ppu->bg_palette, pixel_color_id);
+                is_window_rendered = 1;
+                continue;
+            }
+
+            /* Layer 3: Background */
+            uint8_t abs_pixel_x = i + ppu->bg_x;
+            uint8_t tile_x = abs_pixel_x / 8;
+            bg_tile_index = ppu->vram[bg_tile_map + tile_y * 32 + tile_x];
+            uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, bg_tile_index, lcdc_4, abs_pixel_x, abs_pixel_y);
             bg_raw[i] = pixel_color_id;
             line_pixels[i] = get_color_from_palette(ppu->bg_palette, pixel_color_id);
-            is_window_rendered = 1;
-            continue;
         }
 
-        /* Layer 3: Background */
-        // Calc tile col
-        uint8_t abs_pixel_x = i + ppu->bg_x;
-        uint8_t tile_x = abs_pixel_x / 8; // From 0..31
-        // Calculate Address: base + (row * 32) + col
-        bg_tile_index = ppu->vram[bg_tile_map + tile_y * 32 + tile_x];
-
-        uint8_t pixel_color_id = tile_index_to_pixel_bg_win(ppu, bg_tile_index, lcdc_4, abs_pixel_x, abs_pixel_y);
-        bg_raw[i] = pixel_color_id;
-        line_pixels[i] = get_color_from_palette(ppu->bg_palette, pixel_color_id);
-    }
-
-    if (is_window_rendered)
-    {
-        ppu->window_internal_line++;
+        if (is_window_rendered)
+            ppu->window_internal_line++;
     }
 
     /* Layer 1: Objects */
