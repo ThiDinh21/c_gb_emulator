@@ -211,3 +211,168 @@ void test_oam_scan_8x16_extended_height(void)
 
     TEST_ASSERT_EQUAL_UINT8(1, count);
 }
+
+/* SPRITE RENDERING TESTS */
+
+// Helper: run one full scanline (456 cycles) through ppu_step
+static void run_scanline(CPU *c)
+{
+    for (int i = 0; i < 456; i++)
+        ppu_step(c, 1);
+}
+
+// Basic: sprite using all-color-3 tile renders over white BG
+// setUp: tile 0 = all color 0 (BG), tile 1 = all color 3 (sprite)
+void test_sprite_renders_at_position(void)
+{
+    // LCDC: LCD on, OBJ on, BG on, 8x8
+    ppu->lcd_control = 0x83;
+    ppu->lcd_y = 0;
+    ppu->bg_palette  = 0xE4; // id→shade: 0→0, 1→1, 2→2, 3→3
+    ppu->obj_palette_0 = 0xE4;
+
+    // Sprite at screen (8, 0): raw X = 8+8=16, raw Y = 0+16=16, tile 1, no flags
+    write_mem(cpu, 0xFE00, 16);
+    write_mem(cpu, 0xFE01, 16);
+    write_mem(cpu, 0xFE02, 1);
+    write_mem(cpu, 0xFE03, 0);
+
+    run_scanline(cpu);
+
+    // Pixels 8-15: sprite (shade 3)
+    for (int x = 8; x < 16; x++)
+        TEST_ASSERT_EQUAL_UINT8(3, ppu->test_line_buffer[x]);
+    // Pixel 7: BG (shade 0)
+    TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[7]);
+}
+
+// Color 0 of a sprite is transparent: BG shows through
+void test_sprite_color_0_is_transparent(void)
+{
+    ppu->lcd_control = 0x83;
+    ppu->lcd_y = 0;
+    ppu->bg_palette  = 0xE4;
+    ppu->obj_palette_0 = 0xE4;
+
+    // Sprite using tile 0 (all color 0 = fully transparent)
+    write_mem(cpu, 0xFE00, 16);
+    write_mem(cpu, 0xFE01, 16); // screen X = 8
+    write_mem(cpu, 0xFE02, 0);  // tile 0: all color 0
+    write_mem(cpu, 0xFE03, 0);
+
+    run_scanline(cpu);
+
+    // All pixels should be BG (shade 0), sprite must not overwrite
+    for (int x = 8; x < 16; x++)
+        TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[x]);
+}
+
+// Priority flag (bit 7): sprite hides behind BG colors 1-3
+void test_sprite_priority_hidden_behind_bg(void)
+{
+    // Fill BG map with tile 1 (all color 3) so BG is non-zero everywhere
+    for (int i = 0; i < 1024; i++)
+        write_mem(cpu, 0x9800 + i, 0x01);
+
+    ppu->lcd_control = 0x83;
+    ppu->lcd_y = 0;
+    ppu->bg_palette    = 0xE4;
+    ppu->obj_palette_0 = 0xE4;
+
+    // Sprite at screen (8,0), tile 1, priority flag set (bit 7)
+    write_mem(cpu, 0xFE00, 16);
+    write_mem(cpu, 0xFE01, 16);
+    write_mem(cpu, 0xFE02, 1);
+    write_mem(cpu, 0xFE03, 0x80); // bit 7 = BG priority
+
+    run_scanline(cpu);
+
+    // BG is color 3 (non-zero) so sprite must be hidden: pixels show BG shade 3
+    for (int x = 8; x < 16; x++)
+        TEST_ASSERT_EQUAL_UINT8(3, ppu->test_line_buffer[x]);
+}
+
+// X flip: tile has left half color 1, right half color 2.
+// Without flip: pixels 0-3 = color 1, pixels 4-7 = color 2.
+// With flip:    pixels 0-3 = color 2, pixels 4-7 = color 1.
+void test_sprite_x_flip(void)
+{
+    // Tile 2: left 4 pixels = color 1, right 4 pixels = color 2
+    // bit positions 7-4 -> color 1 (msb=0, lsb=1): byte1[7:4]=1, byte2[7:4]=0
+    // bit positions 3-0 -> color 2 (msb=1, lsb=0): byte1[3:0]=0, byte2[3:0]=1
+    // byte1 = 0b11110000 = 0xF0, byte2 = 0b00001111 = 0x0F  (one row; repeat for all 8 rows)
+    for (int row = 0; row < 8; row++)
+    {
+        write_mem(cpu, 0x8020 + row * 2,     0xF0); // byte1
+        write_mem(cpu, 0x8020 + row * 2 + 1, 0x0F); // byte2
+    }
+
+    ppu->lcd_control = 0x83;
+    ppu->lcd_y = 0;
+    ppu->bg_palette    = 0xE4;
+    ppu->obj_palette_0 = 0xE4;
+
+    // Sprite at screen X=0 (raw X=8), tile 2, X flip flag (bit 5)
+    write_mem(cpu, 0xFE00, 16); // screen Y=0
+    write_mem(cpu, 0xFE01, 8);  // screen X=0
+    write_mem(cpu, 0xFE02, 2);  // tile 2
+    write_mem(cpu, 0xFE03, 0x20); // bit 5 = X flip
+
+    run_scanline(cpu);
+
+    // With X flip: pixels 0-3 should be color 2 (shade 2), pixels 4-7 color 1 (shade 1)
+    for (int x = 0; x < 4; x++)
+        TEST_ASSERT_EQUAL_UINT8(2, ppu->test_line_buffer[x]);
+    for (int x = 4; x < 8; x++)
+        TEST_ASSERT_EQUAL_UINT8(1, ppu->test_line_buffer[x]);
+}
+
+// Y flip: tile row 0 = color 3, all other rows = color 0.
+// With Y flip, scanline 0 reads tile row 7 (color 0) instead of row 0 (color 3).
+void test_sprite_y_flip(void)
+{
+    // Tile 2: only row 0 is color 3 (0xFF/0xFF), remaining rows are color 0 (0x00/0x00)
+    for (int row = 0; row < 8; row++)
+    {
+        uint8_t val = (row == 0) ? 0xFF : 0x00;
+        write_mem(cpu, 0x8020 + row * 2,     val);
+        write_mem(cpu, 0x8020 + row * 2 + 1, val);
+    }
+
+    ppu->lcd_control = 0x83;
+    ppu->lcd_y = 0;
+    ppu->bg_palette    = 0xE4;
+    ppu->obj_palette_0 = 0xE4;
+
+    // Sprite at screen (0, 0), tile 2, Y flip flag (bit 6)
+    write_mem(cpu, 0xFE00, 16);
+    write_mem(cpu, 0xFE01, 8);
+    write_mem(cpu, 0xFE02, 2);
+    write_mem(cpu, 0xFE03, 0x40); // bit 6 = Y flip
+
+    run_scanline(cpu);
+
+    // Y flip: scanline 0 reads tile row 7 (color 0), so pixels should be shade 0 (BG shows)
+    for (int x = 0; x < 8; x++)
+        TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[x]);
+}
+
+// OBJ disabled (LCDC bit 1 = 0): sprite must not appear
+void test_sprite_disabled_by_lcdc(void)
+{
+    ppu->lcd_control = 0x81; // LCD on, OBJ OFF, BG on
+    ppu->lcd_y = 0;
+    ppu->bg_palette    = 0xE4;
+    ppu->obj_palette_0 = 0xE4;
+
+    write_mem(cpu, 0xFE00, 16);
+    write_mem(cpu, 0xFE01, 16);
+    write_mem(cpu, 0xFE02, 1); // tile 1: all color 3
+    write_mem(cpu, 0xFE03, 0);
+
+    run_scanline(cpu);
+
+    // Sprite should not render; pixels 8-15 remain BG shade 0
+    for (int x = 8; x < 16; x++)
+        TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[x]);
+}

@@ -148,10 +148,11 @@ void ppu_render_line(PPU *ppu)
     }
 
     /* Layer 1: Objects */
+    uint8_t obj_enable = ppu->lcd_control & (1 << 1);
     uint8_t visible_sprites[10];
     uint8_t sprite_count = oam_scan(ppu, visible_sprites);
-    (void)sprite_count;  // sprites rendering unimplemented
-    (void)bg_raw;        // used in sprite priority (Step 3)
+    if (obj_enable)
+        render_sprites(ppu, line_pixels, bg_raw, visible_sprites, sprite_count);
 
     memcpy(ppu->test_line_buffer, line_pixels, 160);
 }
@@ -192,6 +193,75 @@ uint8_t get_mode_3_length(PPU *ppu)
     return 172; // Return the minimum value is probably good enough
     // TODO: impl exhaustive mode 3 length calculation
     ppu->mode_3_length = 172;
+}
+
+void render_sprites(PPU *ppu, uint8_t *line_pixels, const uint8_t *bg_raw,
+                    const uint8_t *visible_sprites, uint8_t sprite_count)
+{
+    uint8_t height = (ppu->lcd_control & (1 << 2)) ? 16 : 8;
+
+    // Render in reverse OAM order: lower OAM index is higher priority and drawn last
+    for (int s = sprite_count - 1; s >= 0; s--)
+    {
+        Sprite *sprite = &ppu->sprites[visible_sprites[s]];
+        // Which row of the tile falls on the current scanline
+        uint8_t row = ppu->lcd_y - (sprite->y - 16);
+
+        // Y flip (flag bit 6)
+        if (sprite->flags & (1 << 6))
+        {
+            row = height - 1 - row;
+        }
+
+        // 8x16 mode: bit 0 of tile index is ignored; top/bottom tile selected by row
+        uint8_t tile_index = sprite->index;
+        if (height == 16)
+        {
+            tile_index &= 0xFE; // force even (top tile)
+            if (row >= 8)
+            {
+                tile_index |= 0x01; // bottom tile
+                row -= 8;
+            }
+        }
+
+        // Sprites always use $8000 addressing
+        uint16_t tile_addr = (uint16_t)tile_index * 16 + row * 2;
+        uint8_t byte1 = ppu->vram[tile_addr];
+        uint8_t byte2 = ppu->vram[tile_addr + 1];
+
+        uint8_t palette = (sprite->flags & (1 << 4)) ? ppu->obj_palette_1 : ppu->obj_palette_0;
+        uint8_t priority = sprite->flags & (1 << 7); // 1 = sprite behind BG colors 1-3
+
+        for (int col = 0; col < 8; col++)
+        {
+            int screen_x = (int)sprite->x - 8 + col;
+            if (screen_x < 0 || screen_x >= 160)
+            {
+                continue;
+            }
+
+            // X flip (flag bit 5): read bits from the opposite end
+            uint8_t bit_pos = (sprite->flags & (1 << 5)) ? col : 7 - col;
+            uint8_t lsb = (byte1 >> bit_pos) & 0x1;
+            uint8_t msb = (byte2 >> bit_pos) & 0x1;
+            uint8_t color_id = (msb << 1) | lsb;
+
+            // Color 0 is always transparent for sprites
+            if (color_id == 0)
+            {
+                continue;
+            }
+
+            // BG priority: sprite is behind BG colors 1-3
+            if (priority && bg_raw[screen_x] != 0)
+            {
+                continue;
+            }
+
+            line_pixels[screen_x] = get_color_from_palette(palette, color_id);
+        }
+    }
 }
 
 uint8_t oam_scan(PPU *ppu, uint8_t out_indices[10])

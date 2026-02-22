@@ -50,6 +50,13 @@ uint8_t get_mode_3_length(PPU *ppu);
 uint8_t oam_scan(PPU *ppu, uint8_t out_indices[10]);
 
 /*
+ * Renders all visible sprites onto line_pixels for the current scanline.
+ * https://gbdev.io/pandocs/OAM.html#byte-3--attributesflags
+ */
+void render_sprites(PPU *ppu, uint8_t *line_pixels, const uint8_t *bg_raw,
+                    const uint8_t *visible_sprites, uint8_t sprite_count);
+
+/*
  * Sets the VBlank interrupt flag (Bit 0) in the CPU's Interrupt Flag (IF) register.
  * https://gbdev.io/pandocs/Interrupts.html#ff0f--if-interrupt-flag
  */
