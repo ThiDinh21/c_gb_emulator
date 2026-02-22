@@ -52,6 +52,7 @@ void ppu_step(CPU *cpu, uint8_t cycles)
     {
         if (curr_ppu_mode != 0b01)
         {
+            ppu->frame_ready = 1;
             send_vblank_interrupt(cpu);
             stat_interrupt_condition |= ppu->lcd_status & (0b1 << 4); // Check if Mode 1 flag is enabled
             // Set mode to 1
@@ -163,6 +164,7 @@ void ppu_render_line(PPU *ppu)
         render_sprites(ppu, line_pixels, bg_raw, visible_sprites, sprite_count);
 
     memcpy(ppu->test_line_buffer, line_pixels, 160);
+    memcpy(&ppu->framebuffer[ppu->lcd_y * 160], line_pixels, 160);
 }
 
 uint8_t tile_index_to_pixel_bg_win(PPU *ppu, uint8_t tile_index, uint8_t lcdc4, uint8_t abs_x, uint8_t abs_y)

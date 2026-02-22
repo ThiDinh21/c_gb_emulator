@@ -94,6 +94,8 @@ typedef struct
     uint8_t window_internal_line;  // Keep track of how much has the window been rendered, reset each frame
     uint8_t mode_3_length;         // Track how many cycles PPU needs during mode 3 for current line, altho keep at 172 is good enough
     uint8_t test_line_buffer[160]; // Testing purpose
+    uint8_t framebuffer[144 * 160]; // Full frame: shade 0-3 per pixel, row-major
+    uint8_t frame_ready;            // Set to 1 on VBlank start, cleared by renderer
 } PPU;
 
 typedef struct

@@ -23,7 +23,9 @@ CPU *init_cpu(void)
     cpu->mmu = mmu;
     cpu->timer = timer;
     cpu->ppu = ppu;
-    if (load_rom(cpu, "./roms/test_roms/01-special.gb"))
+    const char *rom_path = getenv("GB_ROM");
+    if (!rom_path) rom_path = "./roms/test_roms/01-special.gb";
+    if (load_rom(cpu, rom_path))
     {
         panic("Error", ERR_ROM_LOAD_FAILURE);
     }

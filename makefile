@@ -2,6 +2,7 @@
 CC ?= gcc
 WARNINGS := -Wall -Wextra -Werror
 CFLAGS ?= $(WARNINGS) -g -O2 -fsanitize=address
+SDL2FLAGS := $(shell sdl2-config --cflags --libs)
 LIBFLAGS ?= -I./lib
 STD ?= -std=c2x
 DBGFLAGS := $(WARNINGS) -g -O0
@@ -58,12 +59,12 @@ default: build
 # non-phony targets
 $(TARGET): $(OBJ)
 	@mkdir -p $(@D)
-	$(CC) -o $@ $(OBJ) $(CFLAGS)
+	$(CC) -o $@ $(OBJ) $(CFLAGS) $(SDL2FLAGS)
 
 # Release Object Rule
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c
 	@mkdir -p $(@D)
-	$(CC) $(COBJFLAGS) $(CFLAGS) -o $@ $<
+	$(CC) $(COBJFLAGS) $(CFLAGS) $(shell sdl2-config --cflags) -o $@ $<
 
 # Debug Object Rule
 $(DBG_PATH)/%.o: $(SRC_PATH)/%.c
