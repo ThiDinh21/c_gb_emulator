@@ -423,3 +423,35 @@ void test_sprite_renders_over_blank_bg(void)
     // Rest is blank (shade 0)
     TEST_ASSERT_EQUAL_UINT8(0, ppu->test_line_buffer[7]);
 }
+
+/* LCD OFF TESTS (LCDC bit 7) */
+
+// When LCD is off, LY stays 0 no matter how many cycles pass
+void test_lcd_off_ly_stays_zero(void)
+{
+    ppu->lcd_control = 0x00; // LCD off (bit 7 = 0)
+    ppu->lcd_y = 50;         // Start at a non-zero line to prove it resets
+    ppu->internal_cycle = 200;
+
+    // Run enough cycles to advance several lines if LCD were on
+    for (int i = 0; i < 456 * 10; i++)
+        ppu_step(cpu, 1);
+
+    TEST_ASSERT_EQUAL_UINT8(0, ppu->lcd_y);
+    TEST_ASSERT_EQUAL_UINT16(0, ppu->internal_cycle);
+    TEST_ASSERT_EQUAL_UINT8(0, ppu->lcd_status & 0b11); // mode = 0
+}
+
+// When LCD is off, no VBlank interrupt is fired
+void test_lcd_off_no_vblank_interrupt(void)
+{
+    ppu->lcd_control = 0x00; // LCD off
+    ppu->lcd_y = 143;
+
+    // Run cycles that would trigger VBlank if LCD were on
+    for (int i = 0; i < 456 * 2; i++)
+        ppu_step(cpu, 1);
+
+    // IF bit 0 (VBlank) must not be set
+    TEST_ASSERT_BIT_LOW(0, read_mem(cpu, 0xFF0F));
+}

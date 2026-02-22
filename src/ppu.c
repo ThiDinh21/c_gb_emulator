@@ -8,6 +8,17 @@
 void ppu_step(CPU *cpu, uint8_t cycles)
 {
     PPU *ppu = cpu->ppu;
+
+    // LCD off (LCDC bit 7 = 0): freeze LY at 0, mode at 0, no rendering or interrupts
+    // https://gbdev.io/pandocs/LCDC.html#lcdc7--lcd-enable
+    if (!(ppu->lcd_control & (1 << 7)))
+    {
+        ppu->lcd_y = 0;
+        ppu->internal_cycle = 0;
+        ppu->lcd_status &= ~0b11; // mode = 0 (HBlank)
+        return;
+    }
+
     uint16_t old_internal_cycle = ppu->internal_cycle;
     uint8_t curr_ppu_mode = ppu->lcd_status & 0b11;
     uint8_t stat_interrupt_condition = 0;
