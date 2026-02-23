@@ -34,8 +34,8 @@ uint8_t read_mem(CPU *cpu, uint16_t addr)
 #ifdef UNITY_TEST_RUN
         return mmu->prohibit[addr - 0xFEA0];
 #endif
-        // Prohibited memory segment
-        panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
+        // Prohibited memory segment — reads return 0xFF on real hardware
+        return 0xFF;
     case 0xFF00 ... 0xFF7F:
         // Input
         return read_io(cpu, addr);
@@ -235,12 +235,12 @@ void write_mem(CPU *cpu, uint16_t addr, uint8_t val)
         write_oam(ppu, addr, val);
         return;
     case 0xFEA0 ... 0xFEFF:
-        // Prohibited memory segment
 #ifdef UNITY_TEST_RUN
         mmu->prohibit[addr - 0xFEA0] = val;
         return;
 #endif
-        panic("Attempt to access prohibited memory region", ERR_INVALID_MEMORY_ACCESS);
+        // Prohibited memory segment — writes are ignored on real hardware
+        return;
     case 0xFF00 ... 0xFF7F:
         // Input
         write_io(cpu, addr, val);

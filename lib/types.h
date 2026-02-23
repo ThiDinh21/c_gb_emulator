@@ -49,18 +49,18 @@ typedef struct
 {
     // Dynamic cartridge data (allocated in load_rom)
     uint8_t *rom;
-    uint8_t *cart_ram;       // NULL if cartridge has no RAM
-    uint32_t rom_size;       // total ROM size in bytes
-    uint32_t cart_ram_size;  // total cart RAM size in bytes (0 if none)
-    uint32_t num_rom_banks;  // rom_size / 0x4000
+    uint8_t *cart_ram;      // NULL if cartridge has no RAM
+    uint32_t rom_size;      // total ROM size in bytes
+    uint32_t cart_ram_size; // total cart RAM size in bytes (0 if none)
+    uint32_t num_rom_banks; // rom_size / 0x4000
 
     // MBC state
-    uint8_t mbc_type;        // cartridge type from header byte 0x0147
-    uint8_t rom_bank;        // selected ROM bank for 0x4000-0x7FFF (init: 1)
-    uint8_t ram_bank;        // selected RAM bank for 0xA000-0xBFFF (init: 0)
-    uint8_t ram_enabled;     // whether cart RAM is accessible (init: 0)
-    uint8_t mbc1_mode;       // MBC1: 0=ROM banking mode, 1=RAM banking mode
-    uint8_t mbc1_upper;      // MBC1: 2-bit upper register (written via 0x4000-0x5FFF)
+    uint8_t mbc_type;    // cartridge type from header byte 0x0147
+    uint8_t rom_bank;    // selected ROM bank for 0x4000-0x7FFF (init: 1)
+    uint8_t ram_bank;    // selected RAM bank for 0xA000-0xBFFF (init: 0)
+    uint8_t ram_enabled; // whether cart RAM is accessible (init: 0)
+    uint8_t mbc1_mode;   // MBC1: 0=ROM banking mode, 1=RAM banking mode
+    uint8_t mbc1_upper;  // MBC1: 2-bit upper register (written via 0x4000-0x5FFF)
 
     uint8_t wram[0x2000];
     uint8_t oam[0xA0];
@@ -88,23 +88,23 @@ typedef struct
 // https://gbdev.io/pandocs/Palettes.html
 typedef struct
 {
-    Sprite sprites[40];            // OAM
-    uint8_t vram[0x2000];          // VRAM: 0x8000..0x9FFF
-    uint8_t lcd_control;           // 0xFF40
-    uint8_t lcd_y;                 // 0xFF44
-    uint8_t lcd_y_cmp;             // 0xFF45
-    uint8_t lcd_status;            // 0xFF41
-    uint8_t bg_x;                  // 0xFF42
-    uint8_t bg_y;                  // 0xFF43
-    uint8_t win_x;                 // 0xFF4B
-    uint8_t win_y;                 // 0xFF4A
-    uint8_t bg_palette;            // 0xFF47
-    uint8_t obj_palette_0;         // 0xFF48
-    uint8_t obj_palette_1;         // 0xFF49
-    uint16_t internal_cycle;       // Keep track of which cycle the PPU at to sync with CPU
-    uint8_t window_internal_line;  // Keep track of how much has the window been rendered, reset each frame
-    uint8_t mode_3_length;         // Track how many cycles PPU needs during mode 3 for current line, altho keep at 172 is good enough
-    uint8_t test_line_buffer[160]; // Testing purpose
+    Sprite sprites[40];             // OAM
+    uint8_t vram[0x2000];           // VRAM: 0x8000..0x9FFF
+    uint8_t lcd_control;            // 0xFF40
+    uint8_t lcd_y;                  // 0xFF44
+    uint8_t lcd_y_cmp;              // 0xFF45
+    uint8_t lcd_status;             // 0xFF41
+    uint8_t bg_x;                   // 0xFF42
+    uint8_t bg_y;                   // 0xFF43
+    uint8_t win_x;                  // 0xFF4B
+    uint8_t win_y;                  // 0xFF4A
+    uint8_t bg_palette;             // 0xFF47
+    uint8_t obj_palette_0;          // 0xFF48
+    uint8_t obj_palette_1;          // 0xFF49
+    uint16_t internal_cycle;        // Keep track of which cycle the PPU at to sync with CPU
+    uint8_t window_internal_line;   // Keep track of how much has the window been rendered, reset each frame
+    uint8_t mode_3_length;          // Track how many cycles PPU needs during mode 3 for current line, altho keep at 172 is good enough
+    uint8_t test_line_buffer[160];  // Testing purpose
     uint8_t framebuffer[144 * 160]; // Full frame: shade 0-3 per pixel, row-major
     uint8_t frame_ready;            // Set to 1 on VBlank start, cleared by renderer
 } PPU;

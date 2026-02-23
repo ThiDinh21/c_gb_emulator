@@ -6,7 +6,6 @@
 
 CPU *init_cpu(void)
 {
-    // !TODO: make this more robust, just temp right now
     MMU *mmu = (MMU *)calloc(1, sizeof(MMU));
     CPU *cpu = (CPU *)calloc(1, sizeof(CPU));
     PPU *ppu = (PPU *)calloc(1, sizeof(PPU));
@@ -24,7 +23,10 @@ CPU *init_cpu(void)
     cpu->timer = timer;
     cpu->ppu = ppu;
     const char *rom_path = getenv("GB_ROM");
-    if (!rom_path) rom_path = "./roms/test_roms/01-special.gb";
+    if (!rom_path)
+    {
+        rom_path = "./roms/test_roms/01-special.gb";
+    }
     if (load_rom(cpu, rom_path))
     {
         panic("Error", ERR_ROM_LOAD_FAILURE);
@@ -69,7 +71,7 @@ uint8_t cpu_step(CPU *cpu)
     return cycles;
 }
 
-static const uint32_t CART_RAM_SIZE_TABLE[] = { 0, 2048, 8192, 32768, 131072 };
+static const uint32_t CART_RAM_SIZE_TABLE[] = {0, 2048, 8192, 32768, 131072};
 
 int load_rom(CPU *cpu, const char *filename)
 {
@@ -90,14 +92,14 @@ int load_rom(CPU *cpu, const char *filename)
     LOG_DEBUG("ROM loaded: %zu bytes", bytes_read);
     fclose(rom_file);
 
-    cpu->mmu->rom_size      = (uint32_t)rom_size;
+    cpu->mmu->rom_size = (uint32_t)rom_size;
     cpu->mmu->num_rom_banks = (uint32_t)rom_size >> 14;
-    cpu->mmu->mbc_type      = cpu->mmu->rom[0x0147];
+    cpu->mmu->mbc_type = cpu->mmu->rom[0x0147];
 
-    uint8_t ram_code        = cpu->mmu->rom[0x0149];
-    uint32_t cart_ram_size  = (ram_code < 5) ? CART_RAM_SIZE_TABLE[ram_code] : 0;
+    uint8_t ram_code = cpu->mmu->rom[0x0149];
+    uint32_t cart_ram_size = (ram_code < 5) ? CART_RAM_SIZE_TABLE[ram_code] : 0;
     cpu->mmu->cart_ram_size = cart_ram_size;
-    cpu->mmu->cart_ram      = (cart_ram_size > 0) ? calloc(1, cart_ram_size) : NULL;
+    cpu->mmu->cart_ram = (cart_ram_size > 0) ? calloc(1, cart_ram_size) : NULL;
 
     cpu->mmu->rom_bank = 1;
 
