@@ -34,6 +34,8 @@ CPU *init_cpu(void)
 
 void clean_up_cpu(CPU *cpu)
 {
+    free(cpu->mmu->rom);
+    free(cpu->mmu->cart_ram);
     free(cpu->mmu);
     clean_up_timer(cpu->timer);
     free(cpu->ppu);
@@ -67,6 +69,8 @@ uint8_t cpu_step(CPU *cpu)
     return cycles;
 }
 
+static const uint32_t CART_RAM_SIZE_TABLE[] = { 0, 2048, 8192, 32768, 131072 };
+
 int load_rom(CPU *cpu, const char *filename)
 {
     FILE *rom_file = fopen(filename, "rb");
@@ -81,10 +85,22 @@ int load_rom(CPU *cpu, const char *filename)
     long rom_size = ftell(rom_file);
     rewind(rom_file);
 
-    size_t x = fread(cpu->mmu->rom_0, 1, rom_size, rom_file);
-    LOG_DEBUG("X: %zu", x);
-
+    cpu->mmu->rom = malloc((size_t)rom_size);
+    size_t bytes_read = fread(cpu->mmu->rom, 1, (size_t)rom_size, rom_file);
+    LOG_DEBUG("ROM loaded: %zu bytes", bytes_read);
     fclose(rom_file);
+
+    cpu->mmu->rom_size      = (uint32_t)rom_size;
+    cpu->mmu->num_rom_banks = (uint32_t)rom_size >> 14;
+    cpu->mmu->mbc_type      = cpu->mmu->rom[0x0147];
+
+    uint8_t ram_code        = cpu->mmu->rom[0x0149];
+    uint32_t cart_ram_size  = (ram_code < 5) ? CART_RAM_SIZE_TABLE[ram_code] : 0;
+    cpu->mmu->cart_ram_size = cart_ram_size;
+    cpu->mmu->cart_ram      = (cart_ram_size > 0) ? calloc(1, cart_ram_size) : NULL;
+
+    cpu->mmu->rom_bank = 1;
+
     return 0;
 }
 

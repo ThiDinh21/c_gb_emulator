@@ -47,11 +47,22 @@ typedef struct
 
 typedef struct
 {
-    uint8_t rom_0[0x4000];
-    uint8_t rom_n[0x4000]; // !TODO: a switch bank, might need to make bigger
-    uint8_t sram[0x2000];
+    // Dynamic cartridge data (allocated in load_rom)
+    uint8_t *rom;
+    uint8_t *cart_ram;       // NULL if cartridge has no RAM
+    uint32_t rom_size;       // total ROM size in bytes
+    uint32_t cart_ram_size;  // total cart RAM size in bytes (0 if none)
+    uint32_t num_rom_banks;  // rom_size / 0x4000
+
+    // MBC state
+    uint8_t mbc_type;        // cartridge type from header byte 0x0147
+    uint8_t rom_bank;        // selected ROM bank for 0x4000-0x7FFF (init: 1)
+    uint8_t ram_bank;        // selected RAM bank for 0xA000-0xBFFF (init: 0)
+    uint8_t ram_enabled;     // whether cart RAM is accessible (init: 0)
+    uint8_t mbc1_mode;       // MBC1: 0=ROM banking mode, 1=RAM banking mode
+    uint8_t mbc1_upper;      // MBC1: 2-bit upper register (written via 0x4000-0x5FFF)
+
     uint8_t wram[0x2000];
-    // size_t wram_index;
     uint8_t oam[0xA0];
 #ifdef UNITY_TEST_RUN
     uint8_t prohibit[0xA0];

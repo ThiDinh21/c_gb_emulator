@@ -50,18 +50,46 @@ uint8_t read_mem(CPU *cpu, uint16_t addr)
     }
 }
 
+// Returns the effective ROM bank number for the 0x4000-0x7FFF window.
+// MBC1: banks 0x00/0x20/0x40/0x60 are not directly selectable — hardware bumps them to +1.
+static uint8_t mbc1_effective_rom_bank(const MMU *mmu)
+{
+    uint8_t bank = ((mmu->mbc1_upper & 0x03) << 5) | (mmu->rom_bank & 0x1F);
+    if ((bank & 0x1F) == 0)
+    {
+        bank++;
+    }
+    if (mmu->num_rom_banks > 0)
+    {
+        bank &= (mmu->num_rom_banks - 1);
+    }
+    return bank;
+}
+
 uint8_t read_rom(MMU *mmu, uint16_t addr)
 {
     if (addr < 0x4000)
     {
-        // ROM 0
-        return mmu->rom_0[addr];
+        // ROM bank 0 window
+        // MBC1 RAM banking mode: upper 2 bits select which 16KB group
+        uint32_t base = 0;
+        if (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
+        {
+            base = (uint32_t)(mmu->mbc1_upper & 0x03) << 19; // << 5 banks, each 16KB
+            if (mmu->num_rom_banks > 0)
+                base &= (uint32_t)(mmu->num_rom_banks - 1) << 14;
+        }
+        return mmu->rom[base + addr];
     }
     else
     {
-        // ROM N
-        // !TODO: temporary, will need to be expanded with MBCs later
-        return mmu->rom_n[addr - 0x4000];
+        // Switchable ROM bank window (0x4000-0x7FFF)
+        uint32_t bank_offset;
+        if (mmu->mbc_type == 0x00)
+            bank_offset = 0x4000; // ROM only: always bank 1
+        else
+            bank_offset = (uint32_t)mbc1_effective_rom_bank(mmu) << 14;
+        return mmu->rom[bank_offset + (addr - 0x4000)];
     }
 }
 
@@ -81,8 +109,18 @@ uint8_t read_vram(PPU *ppu, uint16_t addr)
 
 uint8_t read_sram(MMU *mmu, uint16_t addr)
 {
-    // !TODO: temporary, will need to be expanded with MBCs later
-    return mmu->sram[addr - 0xA000];
+    if (!mmu->cart_ram || !mmu->ram_enabled)
+    {
+        return 0xFF;
+    }
+    uint8_t bank = (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
+                   ? (mmu->mbc1_upper & 0x03) : 0;
+    uint32_t phys = ((uint32_t)bank << 13) + (addr - 0xA000);
+    if (phys >= mmu->cart_ram_size)
+    {
+        return 0xFF;
+    }
+    return mmu->cart_ram[phys];
 }
 
 uint8_t read_wram(MMU *mmu, uint16_t addr)
@@ -232,16 +270,36 @@ void write_mem_u16(CPU *cpu, uint16_t addr, uint16_t val)
 
 void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
 {
-    if (addr < 0x4000)
+    // ROM-only: ignore all writes
+    if (mmu->mbc_type == 0x00)
     {
-        // ROM 0
-        mmu->rom_0[addr] = val;
+        return;
     }
-    else
+
+    // MBC1 register writes
+    if (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03)
     {
-        // ROM N
-        // !TODO: temporary, will need to be expanded with MBCs later
-        mmu->rom_n[addr - 0x4000] = val;
+        if (addr <= 0x1FFF)
+        {
+            // RAM enable: lower nibble 0x0A enables, anything else disables
+            mmu->ram_enabled = ((val & 0x0F) == 0x0A) ? 1 : 0;
+        }
+        else if (addr <= 0x3FFF)
+        {
+            // ROM bank number (lower 5 bits); writing 0 is treated as 1
+            uint8_t bank = val & 0x1F;
+            mmu->rom_bank = (bank == 0) ? 1 : bank;
+        }
+        else if (addr <= 0x5FFF)
+        {
+            // 2-bit upper register: selects RAM bank or upper ROM bank bits
+            mmu->mbc1_upper = val & 0x03;
+        }
+        else
+        {
+            // Banking mode select: 0=ROM banking mode, 1=RAM banking mode
+            mmu->mbc1_mode = val & 0x01;
+        }
     }
 }
 
@@ -253,8 +311,18 @@ void write_vram(PPU *ppu, uint16_t addr, uint8_t val)
 
 void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
 {
-    // !TODO: temporary, will need to be expanded with MBCs later
-    mmu->sram[addr - 0xA000] = val;
+    if (!mmu->cart_ram || !mmu->ram_enabled)
+    {
+        return;
+    }
+    uint8_t bank = (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
+                   ? (mmu->mbc1_upper & 0x03) : 0;
+    uint32_t phys = ((uint32_t)bank << 13) + (addr - 0xA000);
+    if (phys >= mmu->cart_ram_size)
+    {
+        return;
+    }
+    mmu->cart_ram[phys] = val;
 }
 
 void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
