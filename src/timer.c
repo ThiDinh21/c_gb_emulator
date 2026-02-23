@@ -26,12 +26,18 @@ void timer_handling(CPU *cpu, uint8_t cycles)
     uint8_t tima_enabled = (timer->timer_control >> 2) & 0b1; // Check bit 2 of TAC
     uint8_t tac_table_index = timer->timer_control & 0b11;    // Get the first 2 bit of timer control
     uint8_t bit_index = TIMER_CTRL_TABLE[tac_table_index];    // Get the index of the bit that tracks the freq of TIMA
-    uint8_t mask = 1 << bit_index;
 
     if (tima_enabled)
     {
-        // Check if the bit at the index position turn from 1 -> 0
-        if ((old_internal_clock & mask) && !(timer->internal_clock & mask))
+        // Count falling edges of bit_index between old and new internal_clock.
+        // A falling edge occurs at every multiple of 2^(bit_index+1).
+        // Use linear arithmetic to handle uint16_t wrap-around correctly.
+        uint16_t clock_diff = (uint16_t)(timer->internal_clock - old_internal_clock);
+        uint32_t linear_old = (uint32_t)old_internal_clock;
+        uint32_t linear_new = linear_old + clock_diff;
+        uint32_t falling_edges = (linear_new >> (bit_index + 1)) - (linear_old >> (bit_index + 1));
+
+        for (uint32_t i = 0; i < falling_edges; i++)
         {
             uint8_t overflow = __builtin_add_overflow(timer->timer_counter, 1, &timer->timer_counter);
             if (overflow)

@@ -42,17 +42,24 @@ void clean_up_cpu(CPU *cpu)
 
 uint8_t cpu_step(CPU *cpu)
 {
-    // Fetch opcode
-    uint8_t opcode = cpu_fetch_u8(cpu);
     uint8_t cycles = 0;
 
-    // Execute opcode
-    cycles = decode(cpu, opcode);
-
-    if (cpu->ime_pending)
+    if (cpu->halt)
     {
-        cpu->ime = 1;
-        cpu->ime_pending = 0;
+        // CPU is halted: burn 4 cycles waiting for an interrupt to wake it
+        cycles = 4;
+    }
+    else
+    {
+        // EI delay: IME takes effect at the START of the instruction after EI, not after EI itself
+        if (cpu->ime_pending)
+        {
+            cpu->ime = 1;
+            cpu->ime_pending = 0;
+        }
+
+        uint8_t opcode = cpu_fetch_u8(cpu);
+        cycles = decode(cpu, opcode);
     }
 
     cycles += interrupt_handling(cpu);
@@ -90,9 +97,7 @@ void cpu_stop(CPU *cpu)
 
 void cpu_halt(CPU *cpu)
 {
-    // !TODO
-    panic_unimplemented("cpu_halt");
-    cpu->h = 0;
+    cpu->halt = 1;
 }
 
 uint16_t get_af(CPU *cpu)

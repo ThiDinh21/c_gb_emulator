@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "errors.h"
 #include "mmu.h"
 #include "ppu.h"
@@ -306,8 +307,9 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
         }
         break;
     // TIMER registers
-    case 0xFF04: // Divider register
-        timer->divider = val;
+    case 0xFF04: // Divider register - writing any value resets the internal clock
+        timer->divider = 0;
+        timer->internal_clock = 0;
         break;
     case 0xFF05: // Timer counter
         timer->timer_counter = val;
@@ -363,6 +365,9 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
         break;
     case 0xFF4B: // Window pos X
         ppu->win_x = val;
+        break;
+    case 0xFF0F: // Interrupt flag register
+        mmu->io[addr - 0xFF00] = val;
         break;
     default:
         mmu->io[addr - 0xFF00] = val;
