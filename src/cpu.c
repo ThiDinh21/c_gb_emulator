@@ -22,6 +22,14 @@ CPU *init_cpu(void)
     cpu->mmu = mmu;
     cpu->timer = timer;
     cpu->ppu = ppu;
+
+    // PPU post-boot-ROM state
+    // https://gbdev.io/pandocs/Power_Up_Sequence.html
+    ppu->lcd_control = 0x91;
+    ppu->lcd_status = 0x85;
+    ppu->bg_palette = 0xFC;
+    ppu->obj_palette_0 = 0xFF;
+    ppu->obj_palette_1 = 0xFF;
     const char *rom_path = getenv("GB_ROM");
     if (!rom_path)
     {

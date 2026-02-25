@@ -21,42 +21,45 @@ typedef enum
 #define COLOR_BLUE "\033[34m"
 
 // Main logging macro
-#define LOG(level, fmt, ...)                                                         \
-    do                                                                               \
-    {                                                                                \
-        if (level >= LOG_LEVEL)                                                      \
-        {                                                                            \
-            const char *color = "";                                                  \
-            const char *level_str = "";                                              \
-            FILE *stream = stdout;                                                   \
-                                                                                     \
-            switch (level)                                                           \
-            {                                                                        \
-            case LOG_DEBUG:                                                          \
-                color = COLOR_BLUE;                                                  \
-                level_str = "DEBUG";                                                 \
-                break;                                                               \
-            case LOG_INFO:                                                           \
-                color = COLOR_RESET;                                                 \
-                level_str = "INFO";                                                  \
-                break;                                                               \
-            case LOG_WARNING:                                                        \
-                color = COLOR_YELLOW;                                                \
-                level_str = "WARN";                                                  \
-                stream = stderr;                                                     \
-                break;                                                               \
-            case LOG_ERROR:                                                          \
-                color = COLOR_RED;                                                   \
-                level_str = "ERROR";                                                 \
-                stream = stderr;                                                     \
-                break;                                                               \
-            }                                                                        \
-                                                                                     \
-            if (!isatty(fileno(stream))) { color = ""; }                             \
-            fprintf(stream, "%s[%s] %s:%d: " fmt "%s\n",                             \
-                    color, level_str, __FILE__, __LINE__, __VA_ARGS__,               \
-                    isatty(fileno(stream)) ? COLOR_RESET : "");                      \
-        }                                                                            \
+#define LOG(level, fmt, ...)                                           \
+    do                                                                 \
+    {                                                                  \
+        if (level >= LOG_LEVEL)                                        \
+        {                                                              \
+            const char *color = "";                                    \
+            const char *level_str = "";                                \
+            FILE *stream = stdout;                                     \
+                                                                       \
+            switch (level)                                             \
+            {                                                          \
+            case LOG_DEBUG:                                            \
+                color = COLOR_BLUE;                                    \
+                level_str = "DEBUG";                                   \
+                break;                                                 \
+            case LOG_INFO:                                             \
+                color = COLOR_RESET;                                   \
+                level_str = "INFO";                                    \
+                break;                                                 \
+            case LOG_WARNING:                                          \
+                color = COLOR_YELLOW;                                  \
+                level_str = "WARN";                                    \
+                stream = stderr;                                       \
+                break;                                                 \
+            case LOG_ERROR:                                            \
+                color = COLOR_RED;                                     \
+                level_str = "ERROR";                                   \
+                stream = stderr;                                       \
+                break;                                                 \
+            }                                                          \
+                                                                       \
+            if (!isatty(fileno(stream)))                               \
+            {                                                          \
+                color = "";                                            \
+            }                                                          \
+            fprintf(stream, "%s[%s] %s:%d: " fmt "%s\n",               \
+                    color, level_str, __FILE__, __LINE__, __VA_ARGS__, \
+                    isatty(fileno(stream)) ? COLOR_RESET : "");        \
+        }                                                              \
     } while (0)
 
 // Helper macros

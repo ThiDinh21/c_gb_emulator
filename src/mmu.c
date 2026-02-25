@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "errors.h"
 #include "mmu.h"
 #include "ppu.h"
@@ -114,7 +113,8 @@ uint8_t read_sram(MMU *mmu, uint16_t addr)
         return 0xFF;
     }
     uint8_t bank = (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
-                   ? (mmu->mbc1_upper & 0x03) : 0;
+                       ? (mmu->mbc1_upper & 0x03)
+                       : 0;
     uint32_t phys = ((uint32_t)bank << 13) + (addr - 0xA000);
     if (phys >= mmu->cart_ram_size)
     {
@@ -191,8 +191,12 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
         return ppu->win_y;
     case 0xFF4B: // Window pos X
         return ppu->win_x;
+    case 0xFF00: // Joypad - no buttons pressed; return select bits back with all inputs high
+        return 0xC0 | (mmu->io[0] & 0x30) | 0x0F;
+    case 0xFF0F: // Interrupt flag register (upper 3 bits always read as 1)
+        return mmu->io[0x0F] | 0xE0;
     default:
-        return mmu->io[addr - 0xFF00];
+        return 0xFF; // Open bus - unimplemented IO reads as 0xFF
     }
 }
 
@@ -316,7 +320,8 @@ void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
         return;
     }
     uint8_t bank = (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
-                   ? (mmu->mbc1_upper & 0x03) : 0;
+                       ? (mmu->mbc1_upper & 0x03)
+                       : 0;
     uint32_t phys = ((uint32_t)bank << 13) + (addr - 0xA000);
     if (phys >= mmu->cart_ram_size)
     {
@@ -364,6 +369,10 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
 
     switch (addr)
     {
+    // Joypad select
+    case 0xFF00:
+        mmu->io[0] = val;
+        break;
     // Serial registers for Blargg's test ROMs
     case 0xFF01:
         mmu->sb = val;
@@ -434,6 +443,16 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
     case 0xFF4B: // Window pos X
         ppu->win_x = val;
         break;
+    case 0xFF46: // OAM DMA transfer
+    {
+        // Copy 160 bytes from (val << 8) into OAM
+        uint16_t src = (uint16_t)val << 8;
+        for (uint8_t i = 0; i < 160; i++)
+        {
+            write_oam(ppu, 0xFE00 + i, read_mem(cpu, src + i));
+        }
+        break;
+    }
     case 0xFF0F: // Interrupt flag register
         mmu->io[addr - 0xFF00] = val;
         break;

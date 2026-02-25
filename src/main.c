@@ -7,9 +7,9 @@
 #include "timer.h"
 #include "logging.h"
 
-#define SCALE       3
-#define SCREEN_W    (160 * SCALE)
-#define SCREEN_H    (144 * SCALE)
+#define SCALE 3
+#define SCREEN_W (160 * SCALE)
+#define SCREEN_H (144 * SCALE)
 
 // Classic Game Boy green palette (shade 0=lightest, 3=darkest)
 static const uint8_t GB_PALETTE[4][3] = {
@@ -34,8 +34,7 @@ int main(void)
         "GB Emulator",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         SCREEN_W, SCREEN_H,
-        SDL_WINDOW_SHOWN
-    );
+        SDL_WINDOW_SHOWN);
     if (!window)
     {
         fprintf(stderr, "SDL_CreateWindow error: %s\n", SDL_GetError());
@@ -57,8 +56,7 @@ int main(void)
         renderer,
         SDL_PIXELFORMAT_RGB24,
         SDL_TEXTUREACCESS_STREAMING,
-        160, 144
-    );
+        160, 144);
     if (!texture)
     {
         fprintf(stderr, "SDL_CreateTexture error: %s\n", SDL_GetError());
@@ -111,5 +109,6 @@ int main(void)
     SDL_DestroyWindow(window);
     SDL_Quit();
     clean_up_cpu(cpu);
+
     return 0;
 }
