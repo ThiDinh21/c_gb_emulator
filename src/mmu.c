@@ -202,7 +202,6 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
 
 uint8_t read_hram(MMU *mmu, uint16_t addr)
 {
-    // !TODO: tmp, not sure if need updating
     return mmu->hram[addr - 0xFF80];
 }
 
@@ -338,7 +337,6 @@ void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
 void write_oam(PPU *ppu, uint16_t addr, uint8_t val)
 {
     // !TODO: tmp, not sure if need updating
-
     // 0xFE00 ... 0xFE9F
     uint8_t sprite_index = (addr - 0xFE00) >> 2;
     uint8_t byte_index = (addr - 0xFE00) & 0b11;
@@ -463,6 +461,5 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
 
 void write_hram(MMU *mmu, uint16_t addr, uint8_t val)
 {
-    // !TODO: tmp, not sure if need updating
     mmu->hram[addr - 0xFF80] = val;
 }
