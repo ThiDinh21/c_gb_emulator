@@ -2,6 +2,7 @@
 #define LOGGING_H
 
 #include <stdio.h>
+#include <unistd.h>
 
 typedef enum
 {
@@ -51,8 +52,10 @@ typedef enum
                 break;                                                               \
             }                                                                        \
                                                                                      \
+            if (!isatty(fileno(stream))) { color = ""; }                             \
             fprintf(stream, "%s[%s] %s:%d: " fmt "%s\n",                             \
-                    color, level_str, __FILE__, __LINE__, __VA_ARGS__, COLOR_RESET); \
+                    color, level_str, __FILE__, __LINE__, __VA_ARGS__,               \
+                    isatty(fileno(stream)) ? COLOR_RESET : "");                      \
         }                                                                            \
     } while (0)
 
