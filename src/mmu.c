@@ -102,7 +102,7 @@ uint16_t read_mem_u16(CPU *cpu, uint16_t addr)
 
 uint8_t read_vram(PPU *ppu, uint16_t addr)
 {
-    // TODO: Block vram access during some PPU modesc
+    // TODO: Block reads during PPU mode 3 (returns 0xFF on real hardware)
     return ppu->vram[addr - 0x8000];
 }
 
@@ -130,8 +130,6 @@ uint8_t read_wram(MMU *mmu, uint16_t addr)
 
 uint8_t read_oam(PPU *ppu, uint16_t addr)
 {
-    // !TODO: tmp, not sure if need updating
-
     // 0xFE00 ... 0xFE9F
     uint8_t sprite_index = (addr - 0xFE00) >> 2;
     uint8_t byte_index = (addr - 0xFE00) & 0b11;
@@ -152,7 +150,6 @@ uint8_t read_oam(PPU *ppu, uint16_t addr)
 
 uint8_t read_io(CPU *cpu, uint16_t addr)
 {
-    // !TODO: tmp, not sure if need updating
     MMU *mmu = cpu->mmu;
     Timer *timer = cpu->timer;
     PPU *ppu = cpu->ppu;
@@ -308,7 +305,7 @@ void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
 
 void write_vram(PPU *ppu, uint16_t addr, uint8_t val)
 {
-    // !TODO: tmp, not sure if need updating
+    // TODO: Block writes during PPU mode 3 (ignored on real hardware)
     ppu->vram[addr - 0x8000] = val;
 }
 
@@ -336,7 +333,6 @@ void write_wram(MMU *mmu, uint16_t addr, uint8_t val)
 
 void write_oam(PPU *ppu, uint16_t addr, uint8_t val)
 {
-    // !TODO: tmp, not sure if need updating
     // 0xFE00 ... 0xFE9F
     uint8_t sprite_index = (addr - 0xFE00) >> 2;
     uint8_t byte_index = (addr - 0xFE00) & 0b11;
@@ -360,7 +356,6 @@ void write_oam(PPU *ppu, uint16_t addr, uint8_t val)
 
 void write_io(CPU *cpu, uint16_t addr, uint8_t val)
 {
-    // !TODO: tmp, not sure if need updating
     MMU *mmu = cpu->mmu;
     Timer *timer = cpu->timer;
     PPU *ppu = cpu->ppu;
