@@ -23,6 +23,10 @@ CPU *init_cpu(void)
     cpu->timer = timer;
     cpu->ppu = ppu;
 
+    // Joypad: all buttons released
+    mmu->joypad_dpad = 0x0F;
+    mmu->joypad_action = 0x0F;
+
     // PPU post-boot-ROM state
     // https://gbdev.io/pandocs/Power_Up_Sequence.html
     ppu->lcd_control = 0x91;

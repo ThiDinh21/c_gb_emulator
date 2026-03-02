@@ -153,7 +153,9 @@ void ppu_render_line(PPU *ppu)
         }
 
         if (is_window_rendered)
+        {
             ppu->window_internal_line++;
+        }
     }
 
     /* Layer 1: Objects */
@@ -161,7 +163,9 @@ void ppu_render_line(PPU *ppu)
     uint8_t visible_sprites[10];
     uint8_t sprite_count = oam_scan(ppu, visible_sprites);
     if (obj_enable)
+    {
         render_sprites(ppu, line_pixels, bg_raw, visible_sprites, sprite_count);
+    }
 
     memcpy(ppu->test_line_buffer, line_pixels, 160);
     memcpy(&ppu->framebuffer[ppu->lcd_y * 160], line_pixels, 160);

@@ -76,7 +76,36 @@ int main(void)
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT)
+            {
                 running = 0;
+            }
+            else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
+            {
+                uint8_t pressed = (event.type == SDL_KEYDOWN);
+                uint8_t *dpad = &cpu->mmu->joypad_dpad;
+                uint8_t *action = &cpu->mmu->joypad_action;
+
+                switch (event.key.keysym.sym)
+                {
+                // D-pad
+                case SDLK_RIGHT:  pressed ? (*dpad &= ~0x01) : (*dpad |= 0x01); break;
+                case SDLK_LEFT:   pressed ? (*dpad &= ~0x02) : (*dpad |= 0x02); break;
+                case SDLK_UP:     pressed ? (*dpad &= ~0x04) : (*dpad |= 0x04); break;
+                case SDLK_DOWN:   pressed ? (*dpad &= ~0x08) : (*dpad |= 0x08); break;
+                // Action buttons
+                case SDLK_z:      pressed ? (*action &= ~0x01) : (*action |= 0x01); break; // A
+                case SDLK_x:      pressed ? (*action &= ~0x02) : (*action |= 0x02); break; // B
+                case SDLK_BACKSPACE: pressed ? (*action &= ~0x04) : (*action |= 0x04); break; // Select
+                case SDLK_RETURN: pressed ? (*action &= ~0x08) : (*action |= 0x08); break; // Start
+                default: break;
+                }
+
+                // Fire joypad interrupt on any button press
+                if (pressed)
+                {
+                    cpu->mmu->io[0x0F] |= 0x10;
+                }
+            }
         }
 
         uint8_t cycles = cpu_step(cpu);

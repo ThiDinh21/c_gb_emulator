@@ -71,6 +71,10 @@ typedef struct
     uint8_t hram[0x7F];
     uint8_t interrupt_enable;
     uint8_t sb; // Serial transfer data (SB) register, for Blargg's test ROMs
+
+    // Joypad state: bits 0-3 only; 0=pressed, 1=released
+    uint8_t joypad_dpad;   // bit3=Down, bit2=Up, bit1=Left, bit0=Right
+    uint8_t joypad_action; // bit3=Start, bit2=Select, bit1=B, bit0=A
 } MMU;
 
 typedef struct

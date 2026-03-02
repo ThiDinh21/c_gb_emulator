@@ -76,7 +76,9 @@ uint8_t read_rom(MMU *mmu, uint16_t addr)
         {
             base = (uint32_t)(mmu->mbc1_upper & 0x03) << 19; // << 5 banks, each 16KB
             if (mmu->num_rom_banks > 0)
+            {
                 base &= (uint32_t)(mmu->num_rom_banks - 1) << 14;
+            }
         }
         return mmu->rom[base + addr];
     }
@@ -85,9 +87,13 @@ uint8_t read_rom(MMU *mmu, uint16_t addr)
         // Switchable ROM bank window (0x4000-0x7FFF)
         uint32_t bank_offset;
         if (mmu->mbc_type == 0x00)
+        {
             bank_offset = 0x4000; // ROM only: always bank 1
+        }
         else
+        {
             bank_offset = (uint32_t)mbc1_effective_rom_bank(mmu) << 14;
+        }
         return mmu->rom[bank_offset + (addr - 0x4000)];
     }
 }
@@ -188,8 +194,15 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
         return ppu->win_y;
     case 0xFF4B: // Window pos X
         return ppu->win_x;
-    case 0xFF00: // Joypad - no buttons pressed; return select bits back with all inputs high
-        return 0xC0 | (mmu->io[0] & 0x30) | 0x0F;
+    case 0xFF00: // Joypad
+    {
+        uint8_t sel = mmu->io[0] & 0x30;
+        if (!(sel & 0x10))
+            return 0xC0 | 0x10 | (mmu->joypad_dpad & 0x0F);
+        if (!(sel & 0x20))
+            return 0xC0 | 0x20 | (mmu->joypad_action & 0x0F);
+        return 0xCF; // nothing selected
+    }
     case 0xFF0F: // Interrupt flag register (upper 3 bits always read as 1)
         return mmu->io[0x0F] | 0xE0;
     default:
@@ -362,16 +375,14 @@ void write_io(CPU *cpu, uint16_t addr, uint8_t val)
 
     switch (addr)
     {
-    // Joypad select
-    case 0xFF00:
+    case 0xFF00: // Joypad
         mmu->io[0] = val;
         break;
-    // Serial registers for Blargg's test ROMs
-    case 0xFF01:
+    case 0xFF01: // Serial registers for Blargg's test ROMs
         mmu->sb = val;
         break;
     case 0xFF02:
-        if (val == 0x81) // 0x81 means "Transfer requested"
+        if (val == 0x81) // 0x81 means transfer requested
         {
             LOG_DEBUG("%c", mmu->sb);
         }
