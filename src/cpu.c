@@ -236,6 +236,7 @@ void set_flag(CPU *cpu, FlagRegister flag, uint8_t val)
     default:
         panic("Unrecognized flag", ERR_INVALID_MEMORY_ACCESS);
     }
+    val = val ? 1 : 0;
     cpu->flags = (cpu->flags & ~flag) | val;
 }
 
