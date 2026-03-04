@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "cpu.h"
 #include "opcodes.h"
 #include "errors.h"
@@ -48,6 +49,21 @@ CPU *init_cpu(void)
 
 void clean_up_cpu(CPU *cpu)
 {
+    if (cpu->mmu->sav_path && cpu->mmu->cart_ram)
+    {
+        FILE *sav_file = fopen(cpu->mmu->sav_path, "wb");
+        if (sav_file)
+        {
+            fwrite(cpu->mmu->cart_ram, 1, cpu->mmu->cart_ram_size, sav_file);
+            fclose(sav_file);
+            LOG_DEBUG("Save file written: %s", cpu->mmu->sav_path);
+        }
+        else
+        {
+            LOG_ERROR("Failed to write save file: %s", cpu->mmu->sav_path);
+        }
+    }
+    free(cpu->mmu->sav_path);
     free(cpu->mmu->rom);
     free(cpu->mmu->cart_ram);
     free(cpu->mmu);
@@ -114,6 +130,33 @@ int load_rom(CPU *cpu, const char *filename)
     cpu->mmu->cart_ram = (cart_ram_size > 0) ? calloc(1, cart_ram_size) : NULL;
 
     cpu->mmu->rom_bank = 1;
+
+    if (cart_ram_size > 0)
+    {
+        // Derive .sav path: replace extension with .sav, or append .sav
+        size_t len = strlen(filename);
+        char *sav = malloc(len + 5);
+        memcpy(sav, filename, len + 1);
+        char *dot = strrchr(sav, '.');
+        if (dot)
+        {
+            strcpy(dot, ".sav");
+        }
+        else
+        {
+            strcat(sav, ".sav");
+        }
+        cpu->mmu->sav_path = sav;
+
+        // Load existing save file if present
+        FILE *sav_file = fopen(sav, "rb");
+        if (sav_file)
+        {
+            size_t n = fread(cpu->mmu->cart_ram, 1, cart_ram_size, sav_file);
+            fclose(sav_file);
+            LOG_DEBUG("Save file loaded: %s (%zu bytes)", sav, n);
+        }
+    }
 
     return 0;
 }

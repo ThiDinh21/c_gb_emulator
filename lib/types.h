@@ -47,7 +47,7 @@ typedef struct
 
 typedef struct
 {
-    // Dynamic cartridge data (allocated in load_rom)
+    // Cartridge data
     uint8_t *rom;
     uint8_t *cart_ram;      // NULL if cartridge has no RAM
     uint32_t rom_size;      // total ROM size in bytes
@@ -75,6 +75,8 @@ typedef struct
     // Joypad state: bits 0-3 only; 0=pressed, 1=released
     uint8_t joypad_dpad;   // bit3=Down, bit2=Up, bit1=Left, bit0=Right
     uint8_t joypad_action; // bit3=Start, bit2=Select, bit1=B, bit0=A
+
+    char *sav_path; // Path to .sav file derived from ROM path (NULL if no cart RAM)
 } MMU;
 
 typedef struct
