@@ -24,7 +24,8 @@ void tearDown(void)
 void test_read_write_time_registers(void)
 {
     write_mem(cpu, 0xFF04, 0x12);
-    TEST_ASSERT_EQUAL_UINT8(0x12, read_mem(cpu, 0xFF04));
+    // Writing to Divider register (0xFF04) reset it to 0
+    TEST_ASSERT_EQUAL_UINT8(0x00, read_mem(cpu, 0xFF04));
 
     write_mem(cpu, 0xFF05, 0xFF);
     TEST_ASSERT_EQUAL_UINT8(0xFF, read_mem(cpu, 0xFF05));
