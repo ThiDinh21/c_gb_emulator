@@ -197,9 +197,9 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
     case 0xFF00: // Joypad
     {
         uint8_t sel = mmu->io[0] & 0x30;
-        if (!(sel & 0x10))
+        if (!(sel & 0x10)) // Bit 4 is 0 -> d-pad selected
             return 0xC0 | 0x10 | (mmu->joypad_dpad & 0x0F);
-        if (!(sel & 0x20))
+        if (!(sel & 0x20)) // Bit 5 is 0 -> buttons selected
             return 0xC0 | 0x20 | (mmu->joypad_action & 0x0F);
         return 0xCF; // nothing selected
     }

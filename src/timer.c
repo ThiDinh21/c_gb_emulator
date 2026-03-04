@@ -31,7 +31,7 @@ void timer_handling(CPU *cpu, uint8_t cycles)
     {
         // Count falling edges of bit_index between old and new internal_clock.
         // A falling edge occurs at every multiple of 2^(bit_index+1).
-        // Use linear arithmetic to handle uint16_t wrap-around correctly.
+        // Use linear arithmetic to handle uint16_t wrap-around.
         uint16_t clock_diff = (uint16_t)(timer->internal_clock - old_internal_clock);
         uint32_t linear_old = (uint32_t)old_internal_clock;
         uint32_t linear_new = linear_old + clock_diff;
