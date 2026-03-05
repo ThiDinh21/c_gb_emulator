@@ -88,16 +88,33 @@ int main(void)
                 switch (event.key.keysym.sym)
                 {
                 // D-pad
-                case SDLK_RIGHT:  pressed ? (*dpad &= ~0x01) : (*dpad |= 0x01); break;
-                case SDLK_LEFT:   pressed ? (*dpad &= ~0x02) : (*dpad |= 0x02); break;
-                case SDLK_UP:     pressed ? (*dpad &= ~0x04) : (*dpad |= 0x04); break;
-                case SDLK_DOWN:   pressed ? (*dpad &= ~0x08) : (*dpad |= 0x08); break;
+                case SDLK_RIGHT:
+                    pressed ? (*dpad &= ~0x01) : (*dpad |= 0x01);
+                    break;
+                case SDLK_LEFT:
+                    pressed ? (*dpad &= ~0x02) : (*dpad |= 0x02);
+                    break;
+                case SDLK_UP:
+                    pressed ? (*dpad &= ~0x04) : (*dpad |= 0x04);
+                    break;
+                case SDLK_DOWN:
+                    pressed ? (*dpad &= ~0x08) : (*dpad |= 0x08);
+                    break;
                 // Action buttons
-                case SDLK_z:      pressed ? (*action &= ~0x01) : (*action |= 0x01); break; // A
-                case SDLK_x:      pressed ? (*action &= ~0x02) : (*action |= 0x02); break; // B
-                case SDLK_BACKSPACE: pressed ? (*action &= ~0x04) : (*action |= 0x04); break; // Select
-                case SDLK_RETURN: pressed ? (*action &= ~0x08) : (*action |= 0x08); break; // Start
-                default: break;
+                case SDLK_z:
+                    pressed ? (*action &= ~0x01) : (*action |= 0x01);
+                    break; // A
+                case SDLK_x:
+                    pressed ? (*action &= ~0x02) : (*action |= 0x02);
+                    break; // B
+                case SDLK_BACKSPACE:
+                    pressed ? (*action &= ~0x04) : (*action |= 0x04);
+                    break; // Select
+                case SDLK_RETURN:
+                    pressed ? (*action &= ~0x08) : (*action |= 0x08);
+                    break; // Start
+                default:
+                    break;
                 }
 
                 // Fire joypad interrupt on any button press

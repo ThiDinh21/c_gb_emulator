@@ -115,11 +115,13 @@ int load_rom(CPU *cpu, const char *filename)
     long rom_size = ftell(rom_file);
     rewind(rom_file);
 
+    // Copy ROM to MMU
     cpu->mmu->rom = malloc((size_t)rom_size);
     size_t bytes_read = fread(cpu->mmu->rom, 1, (size_t)rom_size, rom_file);
     LOG_DEBUG("ROM loaded: %zu bytes", bytes_read);
     fclose(rom_file);
 
+    // Store ROM details
     cpu->mmu->rom_size = (uint32_t)rom_size;
     cpu->mmu->num_rom_banks = (uint32_t)rom_size >> 14;
     cpu->mmu->mbc_type = cpu->mmu->rom[0x0147];
@@ -285,6 +287,7 @@ uint8_t interrupt_handling(CPU *cpu)
         return 0;
     }
 
+    // CPU exit HALT on any interrupts
     cpu->halt = 0;
 
     // read_mem everytime to avoid outdated data
