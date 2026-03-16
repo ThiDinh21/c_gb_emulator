@@ -107,10 +107,10 @@ int main(void)
                 case SDLK_x:
                     pressed ? (*action &= ~0x02) : (*action |= 0x02);
                     break; // B
-                case SDLK_BACKSPACE:
+                case SDLK_s:
                     pressed ? (*action &= ~0x04) : (*action |= 0x04);
                     break; // Select
-                case SDLK_RETURN:
+                case SDLK_a:
                     pressed ? (*action &= ~0x08) : (*action |= 0x08);
                     break; // Start
                 default:
