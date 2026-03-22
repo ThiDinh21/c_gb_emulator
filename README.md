@@ -79,10 +79,6 @@ Uses the [Unity](https://github.com/ThrowTheSwitch/Unity) test framework. Test f
 make test
 ```
 
-## License
-
-MIT — see [LICENSE](LICENSE).
-
 ## Known Limitations
 
 - HALT bug not emulated
