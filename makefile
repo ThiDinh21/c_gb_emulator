@@ -92,9 +92,10 @@ $(TARGET_DBG): $(OBJ_DEBUG)
 build: $(TARGET)
 
 .PHONY: run
+ROM ?= ./roms/test_roms/01-special.gb
 run: $(TARGET)
 	@echo RUN $(TARGET)
-	@$(TARGET)
+	@GB_ROM=$(ROM) $(TARGET)
 
 .PHONY: debug
 debug: $(TARGET_DBG)
