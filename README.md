@@ -1,5 +1,7 @@
 # Game Boy Emulator
 
+![gameplay](assets/gameplay.png)
+
 A Game Boy (DMG) emulator written from scratch in C.
 
 ## Status
@@ -63,6 +65,10 @@ Uses the [Unity](https://github.com/ThrowTheSwitch/Unity) test framework. Test f
 ```sh
 make test
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ## Known Limitations
 
