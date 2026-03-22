@@ -49,6 +49,9 @@ uint8_t read_mem(CPU *cpu, uint16_t addr)
     }
 }
 
+static inline int is_mbc1(uint8_t t) { return t >= 0x01 && t <= 0x03; }
+static inline int is_mbc3(uint8_t t) { return t >= 0x0F && t <= 0x13; }
+
 // Returns the effective ROM bank number for the 0x4000-0x7FFF window.
 // MBC1: banks 0x00/0x20/0x40/0x60 are not directly selectable — hardware bumps them to +1.
 static uint8_t mbc1_effective_rom_bank(const MMU *mmu)
@@ -70,9 +73,10 @@ uint8_t read_rom(MMU *mmu, uint16_t addr)
     if (addr < 0x4000)
     {
         // ROM bank 0 window
-        // MBC1 RAM banking mode: upper 2 bits select which 16KB group
+        // MBC1 RAM banking mode: upper 2 bits can remap this window
+        // MBC3: bank 0 window is always physical bank 0
         uint32_t base = 0;
-        if (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
+        if (is_mbc1(mmu->mbc_type) && mmu->mbc1_mode == 1)
         {
             base = (uint32_t)(mmu->mbc1_upper & 0x03) << 19; // << 5 banks, each 16KB
             if (mmu->num_rom_banks > 0)
@@ -89,6 +93,10 @@ uint8_t read_rom(MMU *mmu, uint16_t addr)
         if (mmu->mbc_type == 0x00)
         {
             bank_offset = 0x4000; // ROM only: always bank 1
+        }
+        else if (is_mbc3(mmu->mbc_type))
+        {
+            bank_offset = (uint32_t)mmu->rom_bank << 14; // 7-bit, direct
         }
         else
         {
@@ -118,9 +126,19 @@ uint8_t read_sram(MMU *mmu, uint16_t addr)
     {
         return 0xFF;
     }
-    uint8_t bank = (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
-                       ? (mmu->mbc1_upper & 0x03)
-                       : 0;
+    uint8_t bank;
+    if (is_mbc1(mmu->mbc_type))
+    {
+        bank = (mmu->mbc1_mode == 1) ? (mmu->mbc1_upper & 0x03) : 0;
+    }
+    else if (is_mbc3(mmu->mbc_type))
+    {
+        bank = mmu->mbc1_upper & 0x03; // RAM bank selected directly, no mode
+    }
+    else
+    {
+        bank = 0;
+    }
     uint32_t phys = ((uint32_t)bank << 13) + (addr - 0xA000);
     if (phys >= mmu->cart_ram_size)
     {
@@ -198,9 +216,13 @@ uint8_t read_io(CPU *cpu, uint16_t addr)
     {
         uint8_t sel = mmu->io[0] & 0x30;
         if (!(sel & 0x10)) // Bit 4 is 0 -> d-pad selected
+        {
             return 0xC0 | 0x10 | (mmu->joypad_dpad & 0x0F);
+        }
         if (!(sel & 0x20)) // Bit 5 is 0 -> buttons selected
+        {
             return 0xC0 | 0x20 | (mmu->joypad_action & 0x0F);
+        }
         return 0xCF; // nothing selected
     }
     case 0xFF0F: // Interrupt flag register (upper 3 bits always read as 1)
@@ -289,8 +311,7 @@ void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
         return;
     }
 
-    // MBC1 register writes
-    if (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03)
+    if (is_mbc1(mmu->mbc_type))
     {
         if (addr <= 0x1FFF)
         {
@@ -314,6 +335,26 @@ void write_rom(MMU *mmu, uint16_t addr, uint8_t val)
             mmu->mbc1_mode = val & 0x01;
         }
     }
+    else if (is_mbc3(mmu->mbc_type))
+    {
+        if (addr <= 0x1FFF)
+        {
+            // RAM enable: same as MBC1
+            mmu->ram_enabled = ((val & 0x0F) == 0x0A) ? 1 : 0;
+        }
+        else if (addr <= 0x3FFF)
+        {
+            // ROM bank number (7-bit); writing 0 is treated as 1
+            uint8_t bank = val & 0x7F;
+            mmu->rom_bank = (bank == 0) ? 1 : bank;
+        }
+        else if (addr <= 0x5FFF)
+        {
+            // RAM bank select (0x00-0x03); 0x08-0x0C would select RTC regs (not implemented)
+            mmu->mbc1_upper = val & 0x03;
+        }
+        // 0x6000-0x7FFF: RTC latch — not implemented, ignore
+    }
 }
 
 void write_vram(PPU *ppu, uint16_t addr, uint8_t val)
@@ -328,9 +369,19 @@ void write_sram(MMU *mmu, uint16_t addr, uint8_t val)
     {
         return;
     }
-    uint8_t bank = (mmu->mbc_type >= 0x01 && mmu->mbc_type <= 0x03 && mmu->mbc1_mode == 1)
-                       ? (mmu->mbc1_upper & 0x03)
-                       : 0;
+    uint8_t bank;
+    if (is_mbc1(mmu->mbc_type))
+    {
+        bank = (mmu->mbc1_mode == 1) ? (mmu->mbc1_upper & 0x03) : 0;
+    }
+    else if (is_mbc3(mmu->mbc_type))
+    {
+        bank = mmu->mbc1_upper & 0x03;
+    }
+    else
+    {
+        bank = 0;
+    }
     uint32_t phys = ((uint32_t)bank << 13) + (addr - 0xA000);
     if (phys >= mmu->cart_ram_size)
     {
