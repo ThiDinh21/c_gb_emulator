@@ -14,6 +14,19 @@ Passes Blargg's CPU instruction test ROMs. Audio is not implemented.
 - SDL2
 - Ruby (for generating Unity test runners)
 
+### Installing on Linux
+
+```sh
+# Debian/Ubuntu
+sudo apt install gcc libsdl2-dev ruby
+
+# Arch
+sudo pacman -S gcc sdl2 ruby
+
+# Fedora
+sudo dnf install gcc SDL2-devel ruby
+```
+
 ## Building
 
 ```sh
